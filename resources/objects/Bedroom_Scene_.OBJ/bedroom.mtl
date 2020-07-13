@@ -1,0 +1,242 @@
+# 3ds Max Wavefront OBJ Exporter v0.94b - (c)2007 guruware
+# File Created: 01.09.2013 13:32:21
+
+newmtl 02___Default
+	Ns 10.0000
+	Ni 1.5000
+	d 1.0000
+	Tr 1.0000
+	Tf 1.0000 1.0000 1.0000 
+	illum 2
+	Ka 0.0000 0.0000 0.0000
+	Kd 0.3020 0.7725 0.9922
+	Ks 0.0000 0.0000 0.0000
+	Ke 0.0000 0.0000 0.0000
+
+newmtl wire_027177088
+	Ns 32
+	d 1
+	Tr 1
+	Tf 1 1 1
+	illum 2
+	Ka 0.0000 0.0000 0.0000
+	Kd 0.1059 0.6941 0.3451
+	Ks 0.3500 0.3500 0.3500
+
+newmtl Material__5
+	Ns 10.0000
+	Ni 1.5000
+	d 0.3500
+	Tr 0.3500
+	Tf 0.3500 0.3500 0.3500 
+	illum 2
+	Ka 0.0000 0.0000 0.0000
+	Kd 0.9098 0.9098 0.9098
+	Ks 0.0000 0.0000 0.0000
+	Ke 0.0000 0.0000 0.0000
+
+newmtl wire_228214153
+	Ns 32
+	d 1
+	Tr 1
+	Tf 1 1 1
+	illum 2
+	Ka 0.0000 0.0000 0.0000
+	Kd 0.8941 0.8392 0.6000
+	Ks 0.3500 0.3500 0.3500
+
+newmtl wire_087225087
+	Ns 32
+	d 1
+	Tr 1
+	Tf 1 1 1
+	illum 2
+	Ka 0.0000 0.0000 0.0000
+	Kd 0.3412 0.8824 0.3412
+	Ks 0.3500 0.3500 0.3500
+
+newmtl wire_177088027
+	Ns 32
+	d 1
+	Tr 1
+	Tf 1 1 1
+	illum 2
+	Ka 0.0000 0.0000 0.0000
+	Kd 0.6941 0.3451 0.1059
+	Ks 0.3500 0.3500 0.3500
+
+newmtl wire_087225143
+	Ns 32
+	d 1
+	Tr 1
+	Tf 1 1 1
+	illum 2
+	Ka 0.0000 0.0000 0.0000
+	Kd 0.3412 0.8824 0.5608
+	Ks 0.3500 0.3500 0.3500
+
+newmtl wire_088088225
+	Ns 32
+	d 1
+	Tr 1
+	Tf 1 1 1
+	illum 2
+	Ka 0.0000 0.0000 0.0000
+	Kd 0.3451 0.3451 0.8824
+	Ks 0.3500 0.3500 0.3500
+
+newmtl wire_000000000
+	Ns 32
+	d 1
+	Tr 1
+	Tf 1 1 1
+	illum 2
+	Ka 0.0000 0.0000 0.0000
+	Kd 0.0000 0.0000 0.0000
+	Ks 0.3500 0.3500 0.3500
+
+newmtl wire_086086086
+	Ns 32
+	d 1
+	Tr 1
+	Tf 1 1 1
+	illum 2
+	Ka 0.0000 0.0000 0.0000
+	Kd 0.3373 0.3373 0.3373
+	Ks 0.3500 0.3500 0.3500
+
+newmtl wire_143225087
+	Ns 32
+	d 1
+	Tr 1
+	Tf 1 1 1
+	illum 2
+	Ka 0.0000 0.0000 0.0000
+	Kd 0.5608 0.8824 0.3412
+	Ks 0.3500 0.3500 0.3500
+
+newmtl wire_213154229
+	Ns 32
+	d 1
+	Tr 1
+	Tf 1 1 1
+	illum 2
+	Ka 0.0000 0.0000 0.0000
+	Kd 0.8353 0.6039 0.8980
+	Ks 0.3500 0.3500 0.3500
+
+newmtl wire_153228184
+	Ns 32
+	d 1
+	Tr 1
+	Tf 1 1 1
+	illum 2
+	Ka 0.0000 0.0000 0.0000
+	Kd 0.6000 0.8941 0.7216
+	Ks 0.3500 0.3500 0.3500
+
+newmtl wire_214228153
+	Ns 32
+	d 1
+	Tr 1
+	Tf 1 1 1
+	illum 2
+	Ka 0.0000 0.0000 0.0000
+	Kd 0.8392 0.8941 0.6000
+	Ks 0.3500 0.3500 0.3500
+
+newmtl wire_255255255
+	Ns 32
+	d 1
+	Tr 1
+	Tf 1 1 1
+	illum 2
+	Ka 0.0000 0.0000 0.0000
+	Kd 1.0000 1.0000 1.0000
+	Ks 0.3500 0.3500 0.3500
+
+newmtl wire_177027088
+	Ns 32
+	d 1
+	Tr 1
+	Tf 1 1 1
+	illum 2
+	Ka 0.0000 0.0000 0.0000
+	Kd 0.6941 0.1059 0.3451
+	Ks 0.3500 0.3500 0.3500
+
+newmtl 10___Default
+	Ns 10.0000
+	Ni 1.5000
+	d 1.0000
+	Tr 1.0000
+	Tf 1.0000 1.0000 1.0000 
+	illum 2
+	Ka 0.0000 0.0000 0.0000
+	Kd 0.5882 0.5882 0.5882
+	Ks 0.0000 0.0000 0.0000
+	Ke 0.9804 0.9804 0.9804
+
+newmtl 09___Default
+	Ns 10.0000
+	Ni 1.5000
+	d 1.0000
+	Tr 1.0000
+	Tf 1.0000 1.0000 1.0000 
+	illum 2
+	Ka 0.0000 0.0000 0.0000
+	Kd 0.0275 0.0275 0.0275
+	Ks 0.0000 0.0000 0.0000
+	Ke 0.0000 0.0000 0.0000
+
+newmtl wire_228153184
+	Ns 32
+	d 1
+	Tr 1
+	Tf 1 1 1
+	illum 2
+	Ka 0.0000 0.0000 0.0000
+	Kd 0.8941 0.6000 0.7216
+	Ks 0.3500 0.3500 0.3500
+
+newmtl 14___Default
+	Ns 10.0000
+	Ni 1.5000
+	d 1.0000
+	Tr 1.0000
+	Tf 1.0000 1.0000 1.0000 
+	illum 2
+	Ka 0.0000 0.0000 0.0000
+	Kd 0.5882 0.5882 0.5882
+	Ks 0.0000 0.0000 0.0000
+	Ke 0.0000 0.0000 0.0000
+	map_Ka C:\Program Files\Autodesk\3ds Max 2009\Maps\COD Host Migration.jpg
+	map_Kd C:\Program Files\Autodesk\3ds Max 2009\Maps\COD Host Migration.jpg
+
+newmtl 14___Defaulttrdfgh
+	Ns 10.0000
+	Ni 1.5000
+	d 1.0000
+	Tr 1.0000
+	Tf 1.0000 1.0000 1.0000 
+	illum 2
+	Ka 0.0000 0.0000 0.0000
+	Kd 0.5882 0.5882 0.5882
+	Ks 0.0000 0.0000 0.0000
+	Ke 0.0000 0.0000 0.0000
+	map_Ka C:\Program Files\Autodesk\3ds Max 2009\Maps\Pacific-Rim-Poster.jpg
+	map_Kd C:\Program Files\Autodesk\3ds Max 2009\Maps\Pacific-Rim-Poster.jpg
+
+newmtl 14___Defaultbnhj
+	Ns 10.0000
+	Ni 1.5000
+	d 1.0000
+	Tr 1.0000
+	Tf 1.0000 1.0000 1.0000 
+	illum 2
+	Ka 0.0000 0.0000 0.0000
+	Kd 0.5882 0.5882 0.5882
+	Ks 0.0000 0.0000 0.0000
+	Ke 0.0000 0.0000 0.0000
+	map_Ka C:\Program Files\Autodesk\3ds Max 2009\Maps\newtronposter_01.jpg
+	map_Kd C:\Program Files\Autodesk\3ds Max 2009\Maps\newtronposter_01.jpg

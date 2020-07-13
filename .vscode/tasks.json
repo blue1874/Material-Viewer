@@ -1,0 +1,52 @@
+{
+    "tasks": [
+        {
+            "type": "shell",
+            "label": "cmake",
+            "command": "cmake",
+            "args": [
+                // "-G",
+                // "MinGW Makefiles",
+                "-S",
+                "${workspaceFolder}/source",
+                "-B",
+                "${workspaceFolder}/build",
+                "-DVCPKG_TARGET_TRIPLET=x86-windows",
+                "-DCMAKE_TOOLCHAIN_FILE=D:/blue/Coding/opengl-learn/vcpkg-mirror/vcpkg/scripts/buildsystems/vcpkg.cmake",
+                "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": [
+                "$gcc"
+            ],
+        },
+        {
+            // 在build文件夹中调用cmake编译构建debug程序
+            // 执行的命令为`cmake --build ./ --target all --`
+            //  windows系统如上需要在visual stuido的环境中执行命令
+            "label": "build",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "type": "shell",
+            "command": "cmake",
+            "args": [
+                "--build",
+                "./",
+                "--target",
+                "ALL_BUILD",
+                "--"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}/build",
+            },
+            
+            "problemMatcher": "$gcc",
+            "dependsOn": "cmake",
+        }
+    ],
+    "version": "2.0.0"
+}
