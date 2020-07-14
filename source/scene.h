@@ -8,6 +8,10 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+#include "imgui/imgui.h"
+#include "imgui/imgui_impl_glfw.h"
+#include "imgui/imgui_impl_opengl3.h"
+
 #include "camera.h"
 #include "model.h"
 #include "light.h"
@@ -24,36 +28,60 @@ private:
 	unsigned int screenHeight;
 
 	std::vector<Model> models;
-	std::vector<Camera> cameras;
 	std::vector<Shader> shaders;
 	std::vector<Light> lights;
-	//ģ�Ͷ�Ӧ��shader���
+	// 
 	std::vector<unsigned int> model_shader;
 	std::string resDir = RES_DIR;
 
 
 	unsigned int currentShader;
+
+	// input helper variable
+	static bool displayUI;
+	static bool firstMouse;
+	static float lastX ;
+	static float lastY;
+	static float lastFrame;
+	static float deltaTime;
+	static GLuint lastKeyState;
+
+	/**
+	 * input event callback function
+	 * */
+	static void framebuffer_size_callback(GLFWwindow* window, int width, int height);
+	static void mouse_callback(GLFWwindow *window, double xpos, double ypos);
+	/**
+	 * @brief process keyborad input, as callback provided by glfw can not handle multiple key input
+	 * */
+	void keyboard_process();
+
+	static Scene* instance;
+
 	//FBO fbo;
 	//GLuint fbo;
-
-public:
-	Scene(unsigned int screenWidth = SCREEN_WIDTH, unsigned int screenHeight = SCREEN_HEIGHT);
+	Scene(unsigned int screenWidth, unsigned int screenHeight);
+	~Scene();
 	bool initOpenGLContext();
+	void initImGui();
+public:
+	static Camera mainCamera;
+	GLFWwindow* window;
+	std::vector<std::string> includeDirs;
+	static Scene* getInstance(unsigned int screenWidth = SCREEN_WIDTH, unsigned int screenHeight = SCREEN_HEIGHT);
 	//unsigned int addModel(const std::string &path, unsigned int shaderIndex = 0);
 	unsigned int addModel(const std::string &path);
 	unsigned int addLight(const Light &light);
 	unsigned int addShader(const Shader &shader);
-	unsigned int addCamera(const Camera &camera);
-	void setWindowSize(unsigned int w, unsigned int h);
 	void useShader(unsigned int shaderIndex);
-	Shader &getCurrentShader();
-	Shader &getShader(unsigned int shaderIndex);
-	Model &getModel(unsigned int modelIndex);
-	Light &getLight(unsigned int lightIndex);
-	std::vector<Light> &getLight();
+	void getCurrentShader(Shader &shader);
+    bool getShader(unsigned int shaderIndex, Shader &shader);
+    bool getModel(unsigned int modelIndex, Model &model);
+    bool getLight(unsigned int lightIndex, Light &light);
+	void getLight(std::vector<Light> &_lights);
 	//FBO &getFBO();
 	void draw();
-	GLFWwindow* window;
-	std::vector<std::string> includeDirs;
+
+	void drawUniform();
 
 };

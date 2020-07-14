@@ -1,5 +1,22 @@
 #include "scene.h"
 
+Scene* Scene::instance = 0;
+Camera Scene::mainCamera = Camera();
+bool Scene::displayUI = false;
+bool Scene::firstMouse = true;
+float Scene::lastX = SCREEN_HEIGHT / 2;
+float Scene::lastY = SCREEN_WIDTH / 2;
+float Scene::lastFrame = 0.0f;
+float Scene::deltaTime = 0.0f;;
+GLuint Scene::lastKeyState = GLFW_RELEASE;
+
+Scene* Scene::getInstance(unsigned int screenWidth, unsigned int screenHeight)
+{
+	if(instance == 0) {
+		instance = new Scene(screenWidth, screenHeight);
+	}
+	return instance;
+}
 Scene::Scene(unsigned int screenWidth, unsigned int screenHeight)
 {
 
@@ -7,18 +24,68 @@ Scene::Scene(unsigned int screenWidth, unsigned int screenHeight)
 	this->screenWidth = screenWidth;
 
 	initOpenGLContext();
-
+	initImGui();
 	//addModel(resDir + "skybox.obj");
 	addLight(Light(direct));
 	Shader skyboxShader(includeDirs, "./shader/skybox.vert", "./shader/skybox.frag");
 	addShader(skyboxShader);
-	addCamera(Camera(glm::vec3(0.0f, 0.0f, 3.0f)));
-
+	mainCamera = Camera();
 	currentShader = 0;
 	//fbo = FBO(screenWidth, screenHeight);
 	includeDirs.push_back("");
 	includeDirs.push_back("./shader/");
-	1;
+	
+	lastX = screenWidth / 2;
+	lastY = screenHeight / 2;
+}
+
+Scene::~Scene()
+{
+	ImGui_ImplOpenGL3_Shutdown();
+	ImGui_ImplGlfw_Shutdown();
+	ImGui::DestroyContext();
+	glfwTerminate();
+}
+
+void Scene::framebuffer_size_callback(GLFWwindow* window, int width, int height)
+{
+	// make sure the viewport matches the new window dimensions; note that width and 
+	// height will be significantly larger than specified on retina displays.
+	glViewport(0, 0, width, height);	
+}
+void Scene::keyboard_process()
+{
+	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+		glfwSetWindowShouldClose(window, true);
+	if (lastKeyState == GLFW_RELEASE && glfwGetKey(window, GLFW_KEY_TAB) == GLFW_PRESS)
+		displayUI = displayUI ? false : true;	
+	lastKeyState = glfwGetKey(window, GLFW_KEY_TAB);
+	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+		mainCamera.ProcessKeyboard(FORWARD, deltaTime);
+	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+		mainCamera.ProcessKeyboard(BACKWARD, deltaTime);
+	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+		mainCamera.ProcessKeyboard(LEFT, deltaTime);
+	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+		mainCamera.ProcessKeyboard(RIGHT, deltaTime);
+}
+void Scene::mouse_callback(GLFWwindow *window, double xpos, double ypos)
+{
+	if (displayUI) return;
+	if (firstMouse)
+	{
+		lastX = xpos;
+		lastY = ypos;
+		firstMouse = false;
+	}
+
+	float xoffset = xpos - lastX;
+	float yoffset = lastY - ypos; // reversed since y-coordinates go from bottom to top
+
+	lastX = xpos;
+	lastY = ypos;
+
+	mainCamera.ProcessMouseMovement(xoffset, yoffset);	
 }
 
 bool Scene::initOpenGLContext()
@@ -51,6 +118,80 @@ bool Scene::initOpenGLContext()
 		std::cout << "Failed to initialize GLAD" << std::endl;
 		return false;
 	}
+
+	// binding callback function
+	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+	glfwSetCursorPosCallback(window, mouse_callback);
+	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+	return true;
+}
+
+void Scene::initImGui()
+{
+		// Setup Dear ImGui context
+	IMGUI_CHECKVERSION();
+	ImGui::CreateContext();
+	ImGuiIO& io = ImGui::GetIO(); (void)io;
+	//io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
+	//io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
+
+	// Setup Dear ImGui style
+	ImGui::StyleColorsDark();
+	//ImGui::StyleColorsClassic();
+
+	// Setup Platform/Renderer bindings
+	ImGui_ImplGlfw_InitForOpenGL(window, true);
+	ImGui_ImplOpenGL3_Init("#version 330 core");
+}
+
+void Scene::drawUniform()
+{
+	if(displayUI) {
+		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+		firstMouse = true;
+		ImGui_ImplOpenGL3_NewFrame();
+		ImGui_ImplGlfw_NewFrame();
+		ImGui::NewFrame();
+		// 2. Show a simple window that we create ourselves. We use a Begin/End pair to created a named window.
+		ImGui::Begin("Hello, world!");                          // Create a window called "Hello, world!" and append into it.
+
+		ImGui::Text("This is some useful text.");               // Display some text (you can use a format strings too)
+		if(ImGui::CollapsingHeader("shaders", ImGuiTreeNodeFlags_None)) {
+			for (auto i : shaders) {
+				if(ImGui::TreeNode(("ID: " + std::to_string(i.ID)).c_str())) {
+					if(ImGui::TreeNode("uniforms")) {
+						for(auto j : i.uniforms.members) {
+							if(std::holds_alternative<int>(j.second))
+								ImGui::InputInt(j.first.c_str(), &std::get<int>(j.second));
+							else if(std::holds_alternative<float>(j.second))
+								ImGui::InputFloat(j.first.c_str(), &std::get<float>(j.second));
+							else if(std::holds_alternative<glm::vec3>(j.second)){
+								float *f = (float *) &std::get<glm::vec3>(j.second);
+								ImGui::InputFloat3(j.first.c_str(), f);
+							}
+						}
+						ImGui::TreePop();							
+					}
+					ImGui::TreePop();							
+				}
+			}
+		}
+		
+
+		//if (ImGui::Button("Button"))                            // Buttons return true when clicked (most widgets return true when edited/activated)
+		//	counter++;
+		//ImGui::SameLine();
+		//ImGui::Text("counter = %d", counter);
+		ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+		ImGui::End();
+		ImGui::Render();
+		int display_w, display_h;
+		glfwGetFramebufferSize(window, &display_w, &display_h);
+		glViewport(0, 0, display_w, display_h);
+		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+	}
+	else glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+
 }
 
 //unsigned int Scene::addModel(const std::string & path, unsigned int shaderIndex)
@@ -82,18 +223,6 @@ unsigned int Scene::addShader(const Shader & shader)
 
 }
 
-unsigned int Scene::addCamera(const Camera & camera)
-{
-	cameras.push_back(camera);
-	return cameras.size() - 1;
-}
-
-void Scene::setWindowSize(unsigned int w, unsigned int h)
-{
-	screenWidth = w;
-	screenHeight = h;
-}
-
 void Scene::useShader(unsigned int shaderIndex)
 {
 	if (shaderIndex < 0 || shaderIndex > shaders.size() - 1) return;
@@ -101,35 +230,42 @@ void Scene::useShader(unsigned int shaderIndex)
 	currentShader = shaderIndex;
 }
 
-Shader & Scene::getCurrentShader()
+void Scene::getCurrentShader(Shader &shader)
 {
-	return shaders[currentShader];
+	shader = shaders[currentShader];
 }
 
-Shader & Scene::getShader(unsigned int shaderIndex)
+bool Scene::getShader(unsigned int shaderIndex, Shader &shader)
 {
 	Shader res;
-	if (shaderIndex < 0 || shaderIndex > shaders.size() - 1) return res;
-	else return shaders[shaderIndex];
+	if (shaderIndex < 0 || shaderIndex > shaders.size() - 1) return false;
+	else {
+		shader = shaders[shaderIndex];
+		return true;
+	}
 }
 
-Model & Scene::getModel(unsigned int modelIndex)
+bool Scene::getModel(unsigned int modelIndex, Model &model)
 {
-	Model res;
-	if (modelIndex < 0 || modelIndex > models.size() - 1) return res;
-	else return models[modelIndex];
+	if (modelIndex < 0 || modelIndex > models.size() - 1) return false;
+	else {
+		model = models[modelIndex];
+		return true;
+	}
 }
 
-Light & Scene::getLight(unsigned int lightIndex)
+bool Scene::getLight(unsigned int lightIndex, Light &light)
 {
-	Light res;
-	if (lightIndex < 0 || lightIndex > lights.size() - 1) return res;
-	else return lights[lightIndex];
+	if (lightIndex < 0 || lightIndex > lights.size() - 1) return false;
+	else {
+		light = lights[lightIndex];
+		return true;
+	}
 }
 
-std::vector<Light>& Scene::getLight()
+void Scene::getLight(std::vector<Light> &_lights)
 {
-	return lights;
+	_lights = lights;
 }
 
 // FBO & Scene::getFBO()
@@ -140,8 +276,9 @@ std::vector<Light>& Scene::getLight()
 
 void Scene::draw()
 {
-	for (auto i : model_shader) {
-		shaders[i].use();
+	float currentFrame = glfwGetTime();
+	deltaTime = currentFrame - lastFrame;
+	lastFrame = currentFrame;
 
-	}
+	keyboard_process();
 }

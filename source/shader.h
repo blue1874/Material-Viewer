@@ -16,6 +16,7 @@ class Shader
 {
 public:
     GLuint ID;
+	// std::string name;
 	std::vector<std::string> dependencies;
 	Uniforms uniforms;
 	//std::vector<uniform<std::any>> uniforms;
