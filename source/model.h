@@ -5,17 +5,17 @@
 class Model
 {
 	public:
-		/*  º¯Êý   */
+		/*  ï¿½ï¿½ï¿½ï¿½   */
 		Model();
 		Model(std::string &path);
 		Model(std::string &&path);
-		void Draw(Shader shader);
+		void Draw(std::shared_ptr<Shader> shader, Camera &camera, std::string type);
 	private:
-		/*  Ä£ÐÍÊý¾Ý  */
+		/*  Ä£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½  */
 		std::vector<Mesh> meshes;
 		std::string directory;
 		std::vector<Texture> textures_loaded;
-		/*  º¯Êý   */
+		/*  ï¿½ï¿½ï¿½ï¿½   */
 		void processNode(aiNode *node, const aiScene *scene);
 		Mesh processMesh(aiMesh *mesh, const aiScene *scene);
 		Texture &loadMaterialTextures(aiMaterial *mat, aiTextureType type, TextureType typeName);

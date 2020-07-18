@@ -52,7 +52,7 @@ struct Light
 		intensity = 1.5f;
 	}
 
-	void setLightUniform(Shader shader, int index)
+	void setLightUniform(std::shared_ptr<Shader> shader, int index)
 	{
 		char str[10];
 		sprintf_s(str, 10, "%d", index);
@@ -62,21 +62,21 @@ struct Light
 		case LightType::empty:
 			break;
 		case point:
-			shader.updateUniform(uniformName + "position", position);
-			shader.updateUniform(uniformName + "constant", constant);
-			shader.updateUniform(uniformName + "linear", linear);
-			shader.updateUniform(uniformName + "quadratic", quadratic);
+			shader->updateUniform(uniformName + "position", position);
+			shader->updateUniform(uniformName + "constant", constant);
+			shader->updateUniform(uniformName + "linear", linear);
+			shader->updateUniform(uniformName + "quadratic", quadratic);
 			break;
 		case direct:
-			shader.updateUniform(uniformName + "direction", direction);
+			shader->updateUniform(uniformName + "direction", direction);
 			break;
 		case flash:
 			break;
 		default:
 			break;
 		}
-		shader.updateUniform(uniformName + "type", type);
-		shader.updateUniform(uniformName + "color", color);
-		shader.updateUniform(uniformName + "intensity", intensity);
+		shader->updateUniform(uniformName + "type", type);
+		shader->updateUniform(uniformName + "color", color);
+		shader->updateUniform(uniformName + "intensity", intensity);
 	};
 };

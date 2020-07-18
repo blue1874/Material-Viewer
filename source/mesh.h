@@ -11,7 +11,9 @@
 #include <assimp/postprocess.h>
 
 #include "shader.h"
+#include "camera.h"
 #include "load_texture.h"
+#include "cubemap.h"
 #define MAX_TEXTURE_NUM 16
 enum TextureType {normal, ambient, diffuse, specular};
 
@@ -81,5 +83,5 @@ class Mesh
 public:
 	//Mesh(std::vector<glm::vec3> &_pos, std::vector<glm::vec3> &_nor, std::vector<glm::vec2> &_tex, std::vector<unsigned int> &_index, Material &material);
 	Mesh(std::shared_ptr<std::vector<glm::vec3>> _pos, std::shared_ptr<std::vector<glm::vec3>> _nor, std::shared_ptr<std::vector<glm::vec2>> _tex, std::shared_ptr<std::vector<unsigned int>> _index, Material &_material);
-	void draw(Shader &shader);
+	void draw(std::shared_ptr<Shader> shader, Camera &camera, std::string type);
 };

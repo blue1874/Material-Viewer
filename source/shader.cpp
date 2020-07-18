@@ -166,7 +166,7 @@ void Shader::setAllUniforms()
 		if(std::holds_alternative<int>(i.second)) { setUniform(i.first, std::get<int>(i.second)); continue; }
 		else if(std::holds_alternative<float>(i.second)) { setUniform(i.first, std::get<float>(i.second)); continue; }
 		else if(std::holds_alternative<bool>(i.second)) { setUniform(i.first, std::get<bool>(i.second)); continue; }
-		else if(std::holds_alternative<unsigned int>(i.second)) { setUniform(i.first, std::get<unsigned int>(i.second)); continue; }
+		// else if(std::holds_alternative<unsigned int>(i.second)) { setUniform(i.first, std::get<unsigned int>(i.second)); continue; }
 		else if(std::holds_alternative<glm::ivec2>(i.second)) { setUniform(i.first, std::get<glm::ivec2>(i.second)); continue; }
 		else if(std::holds_alternative<glm::ivec3>(i.second)) { setUniform(i.first, std::get<glm::ivec3>(i.second)); continue; }
 		else if(std::holds_alternative<glm::ivec4>(i.second)) { setUniform(i.first, std::get<glm::ivec4>(i.second)); continue; }
@@ -178,7 +178,11 @@ void Shader::setAllUniforms()
 		else if(std::holds_alternative<glm::dvec4>(i.second)) { setUniform(i.first, std::get<glm::dvec4>(i.second)); continue; }
 		else if(std::holds_alternative<glm::mat2>(i.second)) { setUniform(i.first, std::get<glm::mat2>(i.second)); continue; }
 		else if(std::holds_alternative<glm::mat3>(i.second)) { setUniform(i.first, std::get<glm::mat3>(i.second)); continue; }
-		else if(std::holds_alternative<glm::mat4>(i.second)) { setUniform(i.first, std::get<glm::mat4>(i.second)); continue; }
+		else if(std::holds_alternative<glm::mat4>(i.second)) { 
+			//
+			setUniform(i.first, std::get<glm::mat4>(i.second)); 
+			continue; 
+			}
 		else {}
 	}
 }

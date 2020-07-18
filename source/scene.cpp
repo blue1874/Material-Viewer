@@ -1,7 +1,7 @@
 #include "scene.h"
 
 Scene* Scene::instance = 0;
-Camera Scene::mainCamera = Camera();
+Camera Scene::mainCamera = Camera(SCREEN_WIDTH, SCREEN_HEIGHT);
 bool Scene::displayUI = false;
 bool Scene::firstMouse = true;
 float Scene::lastX = SCREEN_HEIGHT / 2;
@@ -25,15 +25,31 @@ Scene::Scene(unsigned int screenWidth, unsigned int screenHeight)
 
 	initOpenGLContext();
 	initImGui();
-	//addModel(resDir + "skybox.obj");
-	addLight(Light(direct));
-	Shader skyboxShader(includeDirs, "./shader/skybox.vert", "./shader/skybox.frag");
-	addShader(skyboxShader);
-	mainCamera = Camera();
-	currentShader = 0;
-	//fbo = FBO(screenWidth, screenHeight);
+
 	includeDirs.push_back("");
 	includeDirs.push_back("./shader/");
+
+	{
+		/**
+		 * add default cube
+		 * using default cubemap model, texture ,shader
+		 * */
+		cubeModel = std::make_shared<Model>(Cubemap::MODEL_PATH);
+		cubeTexture = load_cubemap(Cubemap::faces);
+		// shader() arg 1 should be moved
+		cubemapShader = std::make_shared<Shader>(Shader(includeDirs, Cubemap::VERT_PATH, Cubemap::FRAG_PATH));
+
+		userModel = std::make_shared<Model>("./resources/objects/head/head.obj");
+		// shader() arg 1 should be moved
+		userShader = std::make_shared<Shader>(Shader(includeDirs, "./shader/shader.vert", "./shader/shader.frag"));
+		fboShader = std::make_shared<Shader>(Shader(includeDirs, "./shader/fbo.vert", "./shader/fbo.frag"));
+	}
+	//
+	addLight(Light(direct));
+	mainCamera = Camera(screenWidth, screenHeight);
+	fbo = std::shared_ptr<FBO>(new FBO(screenWidth, screenHeight));
+	currentShader = 0;
+	//fbo = FBO(screenWidth, screenHeight);
 	
 	lastX = screenWidth / 2;
 	lastY = screenHeight / 2;
@@ -51,7 +67,11 @@ void Scene::framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
 	// make sure the viewport matches the new window dimensions; note that width and 
 	// height will be significantly larger than specified on retina displays.
-	glViewport(0, 0, width, height);	
+	glViewport(0, 0, width, height);
+
+	// need to be done
+	// Scene::screenWidth = width;
+	// Scene::screenHeight = height;
 }
 void Scene::keyboard_process()
 {
@@ -157,23 +177,43 @@ void Scene::drawUniform()
 
 		ImGui::Text("This is some useful text.");               // Display some text (you can use a format strings too)
 		if(ImGui::CollapsingHeader("shaders", ImGuiTreeNodeFlags_None)) {
-			for (auto i : shaders) {
-				if(ImGui::TreeNode(("ID: " + std::to_string(i.ID)).c_str())) {
-					if(ImGui::TreeNode("uniforms")) {
-						for(auto j : i.uniforms.members) {
-							if(std::holds_alternative<int>(j.second))
-								ImGui::InputInt(j.first.c_str(), &std::get<int>(j.second));
-							else if(std::holds_alternative<float>(j.second))
-								ImGui::InputFloat(j.first.c_str(), &std::get<float>(j.second));
-							else if(std::holds_alternative<glm::vec3>(j.second)){
-								float *f = (float *) &std::get<glm::vec3>(j.second);
-								ImGui::InputFloat3(j.first.c_str(), f);
-							}
-						}
-						ImGui::TreePop();							
+			if(ImGui::TreeNode("user shader")) {
+				for(auto j : userShader->uniforms.members) {
+					if(std::holds_alternative<int>(j.second))
+						ImGui::InputInt(j.first.c_str(), &std::get<int>(j.second));
+					else if(std::holds_alternative<unsigned int>(j.second))
+						ImGui::InputInt(j.first.c_str(), (int *)&std::get<unsigned int>(j.second));
+					else if(std::holds_alternative<float>(j.second)) {
+						float res = std::get<float>(j.second);
+						ImGui::InputFloat(j.first.c_str(), (float *)&std::get<float>(j.second));
 					}
-					ImGui::TreePop();							
+					else if(std::holds_alternative<glm::vec3>(j.second)){
+						float *f = (float *) &std::get<glm::vec3>(j.second);
+						ImGui::InputFloat3(j.first.c_str(), f);
+					}
 				}
+				ImGui::TreePop();				
+			}
+			if(ImGui::TreeNode("fbo shader")) {
+				for(auto j : fboShader->uniforms.members) {
+					if(std::holds_alternative<int>(j.second)) {
+						int a = std::get<int>(j.second);
+						ImGui::SliderInt(j.first.c_str(), &a, 0, 32);
+						fboShader->updateUniform(j.first, a);
+					}
+					else if(std::holds_alternative<unsigned int>(j.second))
+						ImGui::InputInt(j.first.c_str(), (int *)&std::get<unsigned int>(j.second));
+					else if(std::holds_alternative<float>(j.second)) {
+						float a = std::get<float>(j.second);
+						ImGui::SliderFloat(j.first.c_str(), &a, 0, 5);
+						fboShader->updateUniform(j.first, a);
+					}
+					// else if(std::holds_alternative<glm::vec3>(j.second)){
+					// 	float *f = (float *) &std::get<glm::vec3>(j.second);
+					// 	ImGui::InputFloat3(j.first.c_str(), f);
+					// }
+				}
+				ImGui::TreePop();				
 			}
 		}
 		
@@ -202,11 +242,9 @@ void Scene::drawUniform()
 //	return models.size() - 1;
 //}
 
-unsigned int Scene::addModel(const std::string & path)
+void Scene::updateModel(std::string && path)
 {
-	std::string _path = path;
-	models.push_back(Model(_path));
-	return models.size() - 1;
+	userModel = std::make_shared<Model>(path);
 }
 
 unsigned int Scene::addLight(const Light & light)
@@ -216,42 +254,20 @@ unsigned int Scene::addLight(const Light & light)
 
 }
 
-unsigned int Scene::addShader(const Shader & shader)
-{
-	shaders.push_back(shader);
-	return shaders.size() - 1;
 
-}
+// bool Scene::getShader(unsigned int shaderIndex, Shader &shader)
+// {
+// 	Shader res;
+// 	if (shaderIndex < 0 || shaderIndex > shaders.size() - 1) return false;
+// 	else {
+// 		shader = shaders[shaderIndex];
+// 		return true;
+// 	}
+// }
 
-void Scene::useShader(unsigned int shaderIndex)
+std::shared_ptr<Model> Scene::getModel()
 {
-	if (shaderIndex < 0 || shaderIndex > shaders.size() - 1) return;
-	else shaders[shaderIndex].use();
-	currentShader = shaderIndex;
-}
-
-void Scene::getCurrentShader(Shader &shader)
-{
-	shader = shaders[currentShader];
-}
-
-bool Scene::getShader(unsigned int shaderIndex, Shader &shader)
-{
-	Shader res;
-	if (shaderIndex < 0 || shaderIndex > shaders.size() - 1) return false;
-	else {
-		shader = shaders[shaderIndex];
-		return true;
-	}
-}
-
-bool Scene::getModel(unsigned int modelIndex, Model &model)
-{
-	if (modelIndex < 0 || modelIndex > models.size() - 1) return false;
-	else {
-		model = models[modelIndex];
-		return true;
-	}
+	return userModel;
 }
 
 bool Scene::getLight(unsigned int lightIndex, Light &light)
@@ -276,9 +292,59 @@ void Scene::getLight(std::vector<Light> &_lights)
 
 void Scene::draw()
 {
+	ImVec4 clearColor = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
+	ImVec4 rimColor = ImVec4(0.04f, 0.28f, 0.26f, 1.00f);
+	float shininess = 2.0f;
+
 	float currentFrame = glfwGetTime();
 	deltaTime = currentFrame - lastFrame;
 	lastFrame = currentFrame;
 
 	keyboard_process();
+
+	glBindFramebuffer(GL_FRAMEBUFFER, fbo->id);
+	glEnable(GL_CULL_FACE);
+	glEnable(GL_DEPTH_TEST);
+	glDepthFunc(GL_LEQUAL);
+
+	glClearColor(clearColor.x, clearColor.y, clearColor.z, clearColor.w);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+	
+	userShader->use();
+	userShader->updateUniform("lightNum", (int)lights.size());
+	for (int i = 0; i < lights.size(); i++) lights[i].setLightUniform(userShader, i);
+	userShader->updateUniform("material.shininess", shininess);
+	userShader->updateUniform("viewPos", mainCamera.Position);
+	userModel->Draw(userShader, mainCamera, "");
+
+	glCullFace(GL_FRONT);
+	if(drawCubemap) {
+		glActiveTexture(GL_TEXTURE0);
+		cubemapShader->use();
+		cubemapShader->updateUniform("skybox", 0);
+		glBindTexture(GL_TEXTURE_CUBE_MAP, cubeTexture);
+		cubeModel->Draw(cubemapShader, mainCamera, "cubemap");
+	}
+		
+
+	//glEnable(GL_STENCIL_TEST);
+	//glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
+	//glStencilMask(0x00);
+
+	//glStencilMask(0xFF);
+	//glStencilFunc(GL_ALWAYS, 1, 0xFF);
+
+	glCullFace(GL_BACK);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glDisable(GL_CULL_FACE);
+	glDisable(GL_DEPTH_TEST);
+	glClearColor(clearColor.x, clearColor.y, clearColor.z, clearColor.w);
+	glClear(GL_COLOR_BUFFER_BIT);
+	fbo->draw(fboShader);
+	drawUniform();
+
+	// glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
+	// -------------------------------------------------------------------------------
+	glfwSwapBuffers(window);
+	glfwPollEvents();
 }

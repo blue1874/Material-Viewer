@@ -50,10 +50,12 @@ FBO::~FBO()
 	glDeleteTextures(1, &texture);
 }
 
-void FBO::draw(Shader &shader)
+void FBO::draw(std::shared_ptr<Shader> shader)
 {
-	shader.use();
-	shader.updateUniform("fbo", 0);
+	shader->use();
+	shader->updateUniform("fbo", 0);
+	shader->updateUniform("time", float(glfwGetTime()));
+	shader->setAllUniforms();
 	glBindVertexArray(quadVAO);
 	glBindTexture(GL_TEXTURE_2D, texture);
 	glDrawArrays(GL_TRIANGLES, 0, 6);

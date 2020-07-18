@@ -34,9 +34,9 @@ Model::Model(std::string &&path)
 	processNode(scene->mRootNode, scene);
 }
 
-void Model::Draw(Shader shader)
+void Model::Draw(std::shared_ptr<Shader> shader, Camera &camera, std::string type)
 {
-	for (auto mesh : meshes) mesh.draw(shader);
+	for (auto mesh : meshes) mesh.draw(shader, camera, type);
 }
 
 void Model::processNode(aiNode * node, const aiScene * scene)

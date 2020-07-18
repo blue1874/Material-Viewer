@@ -18,9 +18,9 @@ std::map<std::string, unsigned int> typeIndex = {
     std::pair<std::string, unsigned int>("mat2", mat2),
     std::pair<std::string, unsigned int>("mat3", mat3),
     std::pair<std::string, unsigned int>("mat4", mat4),
-    std::pair<std::string, unsigned int>("sampler1D", _uint),
-    std::pair<std::string, unsigned int>("sampler2D", _uint),
-    std::pair<std::string, unsigned int>("samplerCube", _uint),
+    std::pair<std::string, unsigned int>("sampler1D", _int),
+    std::pair<std::string, unsigned int>("sampler2D", _int),
+    std::pair<std::string, unsigned int>("samplerCube", _int),
     };
 
 data Uniforms::getType(std::string type)

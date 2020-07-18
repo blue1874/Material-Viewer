@@ -25,5 +25,5 @@ struct FBO
 	FBO();
 	FBO(unsigned int width, unsigned int height);
 	~FBO();
-	void draw(Shader &shader);
+	void draw(std::shared_ptr<Shader> shader);
 };
