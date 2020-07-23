@@ -1,6 +1,11 @@
-#include "shaderTextProcess.h"
+#pragma once
 
-std::vector<std::string> split(std::string &src)
+#include <string>
+#include <regex>
+#include <vector>
+
+// split string to vector<string> with delim "\\s+"
+inline std::vector<std::string> split(std::string &src)
 {
     std::regex re("\\s+");
     std::regex_token_iterator<std::string::const_iterator> res(src.begin(), src.end(), re, -1);

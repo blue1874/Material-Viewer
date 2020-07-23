@@ -1,17 +1,15 @@
 #include "mesh.h"
-Mesh::Mesh(std::shared_ptr<std::vector<glm::vec3>> _pos, std::shared_ptr<std::vector<glm::vec3>> _nor, std::shared_ptr<std::vector<glm::vec2>> _tex, std::shared_ptr<std::vector<unsigned int>> _index, Material &_material)
+Mesh::Mesh(Vertex vertex, Material &_material)
 {
-	vertexSize = _pos->size();
-	indexSize = _index->size();
-	this->material = _material;
+	auto [pos, pos_size, nor, nor_size, tex, tex_size, index, index_size] = vertex;
+
+	vertexSize = pos_size / sizeof(glm::vec3);
+	indexSize = index_size / sizeof(size_t);
+	material = _material;
 	/**
 	 * sizeof(glm::vec2) = 8U, why i get 12U in sizeof(decltype(_tex.get()[0]))?
 	 * it makes me confused.
 	 * */
-	unsigned int sizeofPos = sizeof(glm::vec3) * _pos->size();
-	unsigned int sizeofNor = sizeof(glm::vec3) * _nor->size();
-	unsigned int sizeofTex = sizeof(glm::vec2) * _tex->size();
-	unsigned int sizeofInd = sizeof(unsigned int) * _index->size();
 
 	glGenVertexArrays(1, &VAO);
 	glGenBuffers(1, &VBO);
@@ -20,32 +18,32 @@ Mesh::Mesh(std::shared_ptr<std::vector<glm::vec3>> _pos, std::shared_ptr<std::ve
 	glBindVertexArray(VAO);
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
 	// allocate enough space to contain data
-	glBufferData(GL_ARRAY_BUFFER, sizeofPos + sizeofNor + sizeofTex, NULL, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, pos_size + nor_size + tex_size, NULL, GL_STATIC_DRAW);
 	/** why does &(*_pos)[0] point to different location with _pos.get()?
 	 * and &(*_pos)[0] point to correct loaction
 	 * 	std::cout << &(*_pos)[0] << " " << _pos.get() << "\n";
 	 * */
-	glBufferSubData(GL_ARRAY_BUFFER, 0, sizeofPos, &(*_pos)[0]);
-	glBufferSubData(GL_ARRAY_BUFFER, sizeofPos, sizeofNor, &(*_nor)[0]);
-	glBufferSubData(GL_ARRAY_BUFFER, sizeofPos + sizeofNor, sizeofTex, &(*_tex)[0]);
+	glBufferSubData(GL_ARRAY_BUFFER, 0, pos_size, pos);
+	glBufferSubData(GL_ARRAY_BUFFER, pos_size, nor_size, nor);
+	glBufferSubData(GL_ARRAY_BUFFER, pos_size + nor_size, tex_size, tex);
 
 
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IBO);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeofInd, &(*_index)[0], GL_STATIC_DRAW);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, index_size, index, GL_STATIC_DRAW);
 
 	// position attribute
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), (void*)0);
 	glEnableVertexAttribArray(0);
 
 	//normal attribute
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), (void*)(sizeofPos));
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), (void*)(pos_size));
 	glEnableVertexAttribArray(1);
 
 	//tex attribute
-	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(glm::vec2), (void*)(sizeofPos + sizeofNor));
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(glm::vec2), (void*)(pos_size + nor_size));
 	glEnableVertexAttribArray(2);
 
-	glBindVertexArray(0);
+	glBindVertexArray(0);	
 }
 
 void Mesh::draw(std::shared_ptr<Shader> shader, Camera &camera, std::string type)
@@ -61,7 +59,7 @@ void Mesh::draw(std::shared_ptr<Shader> shader, Camera &camera, std::string type
 	}
 	else {
 		//int normalN = 0, ambientN = 0, diffuseN = 0, specularN = 0;
-		shader->updateUniform("model", glm::mat4(0.1f));
+		shader->updateUniform("model", glm::mat4(1.0f));
 		shader->updateUniform("material.ambient", material.Ka);
 		shader->updateUniform("material.diffuse", material.Kd);
 		shader->updateUniform("material.specular", material.Ks);

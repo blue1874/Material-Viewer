@@ -12,8 +12,14 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 # 并将名称保存到 DIR_SRCS 变量
 aux_source_directory(. APP)
 aux_source_directory(./imgui IMGUI)
+aux_source_directory(./io IO)
+aux_source_directory(./mgl MGL)
+aux_source_directory(./scene SCENE)
+aux_source_directory(./tool TOOL)
+
+include_directories(${CMAKE_SOURCE_DIR})
 # 指定生成目标
-add_executable(${PROJECT_NAME} ${APP} ${IMGUI})
+add_executable(${PROJECT_NAME} ${APP} ${IMGUI} ${IO} ${MGL} ${SCENE} ${TOOL})
 
 find_package(glm CONFIG REQUIRED)
 target_link_libraries(${PROJECT_NAME} PRIVATE glm)

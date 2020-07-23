@@ -45,7 +45,7 @@ Scene::Scene(unsigned int screenWidth, unsigned int screenHeight)
 		fboShader = std::make_shared<Shader>(Shader(includeDirs, "./shader/fbo.vert", "./shader/fbo.frag"));
 	}
 	//
-	addLight(Light(direct));
+	addLight(std::make_shared<DirectLight>(DirectLight()));
 	mainCamera = Camera(screenWidth, screenHeight);
 	fbo = std::shared_ptr<FBO>(new FBO(screenWidth, screenHeight));
 	currentShader = 0;
@@ -164,7 +164,7 @@ void Scene::initImGui()
 	ImGui_ImplOpenGL3_Init("#version 330 core");
 }
 
-void Scene::drawUniform()
+void Scene::drawImGui()
 {
 	if(displayUI) {
 		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
@@ -173,48 +173,76 @@ void Scene::drawUniform()
 		ImGui_ImplGlfw_NewFrame();
 		ImGui::NewFrame();
 		// 2. Show a simple window that we create ourselves. We use a Begin/End pair to created a named window.
-		ImGui::Begin("Hello, world!");                          // Create a window called "Hello, world!" and append into it.
-
-		ImGui::Text("This is some useful text.");               // Display some text (you can use a format strings too)
-		if(ImGui::CollapsingHeader("shaders", ImGuiTreeNodeFlags_None)) {
-			if(ImGui::TreeNode("user shader")) {
-				for(auto j : userShader->uniforms.members) {
-					if(std::holds_alternative<int>(j.second))
-						ImGui::InputInt(j.first.c_str(), &std::get<int>(j.second));
-					else if(std::holds_alternative<unsigned int>(j.second))
-						ImGui::InputInt(j.first.c_str(), (int *)&std::get<unsigned int>(j.second));
-					else if(std::holds_alternative<float>(j.second)) {
-						float res = std::get<float>(j.second);
-						ImGui::InputFloat(j.first.c_str(), (float *)&std::get<float>(j.second));
+		ImGui::Begin("console");                          // Create a window called "Hello, world!" and append into it.
+		if (ImGui::BeginTabBar("MyTabBar", ImGuiTabBarFlags_None))
+		{
+			if (ImGui::BeginTabItem("shader"))
+			{
+				if(ImGui::TreeNode("user shader")) {
+					for(auto j : userShader->uniforms.members) {
+						if(std::holds_alternative<int>(j.second)) {
+							auto a = std::get<int>(j.second);
+							ImGui::InputInt(j.first.c_str(), &a);
+							userShader->updateUniform(j.first, a);
+						}
+						else if(std::holds_alternative<size_t>(j.second))
+						{
+							int a = std::get<size_t>(j.second);
+							ImGui::InputInt(j.first.c_str(), &a);
+							userShader->updateUniform(j.first, a);
+						}
+						else if(std::holds_alternative<float>(j.second)) {
+							auto a = std::get<float>(j.second);
+							ImGui::InputFloat(j.first.c_str(), &a);
+							userShader->updateUniform(j.first, a);
+						}
+						else if(std::holds_alternative<glm::vec3>(j.second)){
+							auto a = std::get<glm::vec3>(j.second);
+							ImGui::InputFloat3(j.first.c_str(), (float *)&a);
+							userShader->updateUniform(j.first, a);
+						}
 					}
-					else if(std::holds_alternative<glm::vec3>(j.second)){
-						float *f = (float *) &std::get<glm::vec3>(j.second);
-						ImGui::InputFloat3(j.first.c_str(), f);
-					}
+					ImGui::TreePop();				
 				}
-				ImGui::TreePop();				
-			}
-			if(ImGui::TreeNode("fbo shader")) {
-				for(auto j : fboShader->uniforms.members) {
-					if(std::holds_alternative<int>(j.second)) {
-						int a = std::get<int>(j.second);
-						ImGui::SliderInt(j.first.c_str(), &a, 0, 32);
-						fboShader->updateUniform(j.first, a);
+				if(ImGui::TreeNode("fbo shader")) {
+					for(auto j : fboShader->uniforms.members) {
+						if(std::holds_alternative<int>(j.second)) {
+							auto a = std::get<int>(j.second); 
+							ImGui::SliderInt(j.first.c_str(), &a, 0, 32);
+							fboShader->updateUniform(j.first, a);
+						}
+						else if(std::holds_alternative<size_t>(j.second))
+						{
+							int a = std::get<size_t>(j.second); 
+							ImGui::SliderInt(j.first.c_str(), &a, 0, 32);
+							fboShader->updateUniform(j.first, a);
+						}
+						else if(std::holds_alternative<float>(j.second)) {
+							auto a = std::get<float>(j.second); 
+							ImGui::SliderFloat(j.first.c_str(), &a, 0, 5);
+							fboShader->updateUniform(j.first, a);
+						}
+						// else if(std::holds_alternative<glm::vec3>(j.second)){
+						// 	float *f = (float *) &std::get<glm::vec3>(j.second);
+						// 	ImGui::InputFloat3(j.first.c_str(), f);
+						// }
 					}
-					else if(std::holds_alternative<unsigned int>(j.second))
-						ImGui::InputInt(j.first.c_str(), (int *)&std::get<unsigned int>(j.second));
-					else if(std::holds_alternative<float>(j.second)) {
-						float a = std::get<float>(j.second);
-						ImGui::SliderFloat(j.first.c_str(), &a, 0, 5);
-						fboShader->updateUniform(j.first, a);
-					}
-					// else if(std::holds_alternative<glm::vec3>(j.second)){
-					// 	float *f = (float *) &std::get<glm::vec3>(j.second);
-					// 	ImGui::InputFloat3(j.first.c_str(), f);
-					// }
+					ImGui::TreePop();				
 				}
-				ImGui::TreePop();				
+				ImGui::EndTabItem();
 			}
+			if (ImGui::BeginTabItem("model"))
+			{
+				ImGui::Text("user model");
+				ImGui::Text("%d meshes, %d vertices, %d faces, %d textures", userModel->mesh_num, userModel->vertices_num, userModel->face_num, userModel->texture_num);
+				ImGui::EndTabItem();
+			}
+			if (ImGui::BeginTabItem("render"))
+			{
+				ImGui::Text("This is the Cucumber tab!\nblah blah blah blah blah");
+				ImGui::EndTabItem();
+			}
+			ImGui::EndTabBar();
 		}
 		
 
@@ -234,55 +262,36 @@ void Scene::drawUniform()
 
 }
 
-//unsigned int Scene::addModel(const std::string & path, unsigned int shaderIndex)
-//{
-//	std::string _path = path;
-//	models.push_back(Model(_path));
-//	//model_shader.push_back(shaderIndex);
-//	return models.size() - 1;
-//}
 
 void Scene::updateModel(std::string && path)
 {
 	userModel = std::make_shared<Model>(path);
 }
 
-unsigned int Scene::addLight(const Light & light)
+void Scene::addLight(std::shared_ptr<Light> light)
 {
 	lights.push_back(light);
-	return lights.size() - 1;
-
 }
 
-
-// bool Scene::getShader(unsigned int shaderIndex, Shader &shader)
-// {
-// 	Shader res;
-// 	if (shaderIndex < 0 || shaderIndex > shaders.size() - 1) return false;
-// 	else {
-// 		shader = shaders[shaderIndex];
-// 		return true;
-// 	}
-// }
 
 std::shared_ptr<Model> Scene::getModel()
 {
 	return userModel;
 }
 
-bool Scene::getLight(unsigned int lightIndex, Light &light)
-{
-	if (lightIndex < 0 || lightIndex > lights.size() - 1) return false;
-	else {
-		light = lights[lightIndex];
-		return true;
-	}
-}
+// bool Scene::getLight(unsigned int lightIndex, Light &light)
+// {
+// 	if (lightIndex < 0 || lightIndex > lights.size() - 1) return false;
+// 	else {
+// 		light = lights[lightIndex];
+// 		return true;
+// 	}
+// }
 
-void Scene::getLight(std::vector<Light> &_lights)
-{
-	_lights = lights;
-}
+// void Scene::getLight(std::vector<Light> &_lights)
+// {
+// 	_lights = lights;
+// }
 
 // FBO & Scene::getFBO()
 // {
@@ -312,7 +321,7 @@ void Scene::draw()
 	
 	userShader->use();
 	userShader->updateUniform("lightNum", (int)lights.size());
-	for (int i = 0; i < lights.size(); i++) lights[i].setLightUniform(userShader, i);
+	for (int i = 0; i < lights.size(); i++) lights[i]->setLightUniform(userShader, i);
 	userShader->updateUniform("material.shininess", shininess);
 	userShader->updateUniform("viewPos", mainCamera.Position);
 	userModel->Draw(userShader, mainCamera, "");
@@ -341,7 +350,7 @@ void Scene::draw()
 	glClearColor(clearColor.x, clearColor.y, clearColor.z, clearColor.w);
 	glClear(GL_COLOR_BUFFER_BIT);
 	fbo->draw(fboShader);
-	drawUniform();
+	drawImGui();
 
 	// glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
 	// -------------------------------------------------------------------------------

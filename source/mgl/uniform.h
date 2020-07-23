@@ -13,14 +13,35 @@ enum uniformType {_empty, _int, _float, _bool, _uint, _double,
 /** 
  * unifromType variant
  * */
-typedef std::variant<std::monostate, int, float, bool, unsigned int, double, 
+typedef std::variant<std::monostate, int, float, bool, size_t, double, 
     glm::ivec2, glm::ivec3, glm::ivec4, glm::vec2, glm::vec3, 
     glm::vec4, glm::dvec2, glm::dvec3, glm::dvec4, glm::mat2, 
     glm::mat3, glm::mat4> data; 
 
 // string to type reflection
-extern std::map<std::string, unsigned int> typeIndex;
-
+inline std::map<std::string, size_t> typeIndex = {
+    std::pair<std::string, size_t>("int", _int),
+    std::pair<std::string, size_t>("float", _float),
+    std::pair<std::string, size_t>("bool", _bool),
+    std::pair<std::string, size_t>("uint", _uint),
+    std::pair<std::string, size_t>("double", _double),
+    std::pair<std::string, size_t>("ivec2", ivec2),
+    std::pair<std::string, size_t>("ivec3", ivec3),
+    std::pair<std::string, size_t>("ivec4", ivec4),
+    std::pair<std::string, size_t>("vec2", vec2),
+    std::pair<std::string, size_t>("vec3", vec3),
+    std::pair<std::string, size_t>("vec4", vec4),
+    std::pair<std::string, size_t>("dvec2", dvec2),
+    std::pair<std::string, size_t>("dvec3", dvec3),
+    std::pair<std::string, size_t>("dvec4", dvec4),
+    std::pair<std::string, size_t>("mat2", mat2),
+    std::pair<std::string, size_t>("mat3", mat3),
+    std::pair<std::string, size_t>("mat4", mat4),
+    std::pair<std::string, size_t>("sampler1D", _int),
+    std::pair<std::string, size_t>("sampler2D", _int),
+    std::pair<std::string, size_t>("samplerCube", _int),
+    };
+    
 template <class Variant, std::size_t I = 0>
 Variant variant_from_index(std::size_t index) {
     if constexpr(I >= std::variant_size_v<Variant>)

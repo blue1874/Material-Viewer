@@ -1,28 +1,5 @@
 #include "uniform.h"
 
-std::map<std::string, unsigned int> typeIndex = {
-    std::pair<std::string, unsigned int>("int", _int),
-    std::pair<std::string, unsigned int>("float", _float),
-    std::pair<std::string, unsigned int>("bool", _bool),
-    std::pair<std::string, unsigned int>("uint", _uint),
-    std::pair<std::string, unsigned int>("double", _double),
-    std::pair<std::string, unsigned int>("ivec2", ivec2),
-    std::pair<std::string, unsigned int>("ivec3", ivec3),
-    std::pair<std::string, unsigned int>("ivec4", ivec4),
-    std::pair<std::string, unsigned int>("vec2", vec2),
-    std::pair<std::string, unsigned int>("vec3", vec3),
-    std::pair<std::string, unsigned int>("vec4", vec4),
-    std::pair<std::string, unsigned int>("dvec2", dvec2),
-    std::pair<std::string, unsigned int>("dvec3", dvec3),
-    std::pair<std::string, unsigned int>("dvec4", dvec4),
-    std::pair<std::string, unsigned int>("mat2", mat2),
-    std::pair<std::string, unsigned int>("mat3", mat3),
-    std::pair<std::string, unsigned int>("mat4", mat4),
-    std::pair<std::string, unsigned int>("sampler1D", _int),
-    std::pair<std::string, unsigned int>("sampler2D", _int),
-    std::pair<std::string, unsigned int>("samplerCube", _int),
-    };
-
 data Uniforms::getType(std::string type)
 {
     data res;

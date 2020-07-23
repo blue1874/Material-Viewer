@@ -2,6 +2,7 @@
 
 #include <string>
 #include <vector>
+#include <tuple>
 #include <memory>
 #include <glad/glad.h>
 #include <glm/glm.hpp>
@@ -10,10 +11,10 @@
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
 
-#include "shader.h"
-#include "camera.h"
-#include "load_texture.h"
-#include "cubemap.h"
+#include "mgl/shader.h"
+#include "scene/camera.h"
+#include "io/load_texture.h"
+#include "scene/cubemap.h"
 #define MAX_TEXTURE_NUM 16
 enum TextureType {normal, ambient, diffuse, specular};
 
@@ -74,14 +75,33 @@ struct Material
 	Texture map_Kn;
 };
 
+/**
+ * @brief store mesh data pointer and size in order to transport them to openGL
+ * */
+struct Vertex 
+{
+	void *position;
+	// size in memory, not nums of data
+	size_t position_size;
+	void *normal;
+	size_t normal_size;
+	void *texCoord;
+	size_t texCoord_size;
+	void *index;
+	size_t index_size;
+};
+
 class Mesh
 {
-	unsigned int vertexSize;
-	unsigned int indexSize;
+	size_t vertexSize;
+	size_t indexSize;
 	Material material;
 	unsigned int VBO, IBO, VAO;
 public:
-	//Mesh(std::vector<glm::vec3> &_pos, std::vector<glm::vec3> &_nor, std::vector<glm::vec2> &_tex, std::vector<unsigned int> &_index, Material &material);
-	Mesh(std::shared_ptr<std::vector<glm::vec3>> _pos, std::shared_ptr<std::vector<glm::vec3>> _nor, std::shared_ptr<std::vector<glm::vec2>> _tex, std::shared_ptr<std::vector<unsigned int>> _index, Material &_material);
+	/**
+	 * @brief construct openGL buffer and transport data to them by using Veretx and Material
+	 * @param vertex position, normal, texCoord, index
+	 * */
+	Mesh(Vertex vertex, Material &_material);
 	void draw(std::shared_ptr<Shader> shader, Camera &camera, std::string type);
 };

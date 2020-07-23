@@ -10,9 +10,9 @@
 #include "imgui/imgui_impl_glfw.h"
 #include "imgui/imgui_impl_opengl3.h"
 
-#include "debug.h"
-#include "scene.h"
-#include "fbo.h"
+#include "tool/debug.h"
+#include "scene/scene.h"
+#include "mgl/fbo.h"
 
 #include <stdio.h>  /* defines FILENAME_MAX */
 #include <direct.h>
@@ -57,8 +57,8 @@
 //	glUseProgram(0);
 //};
 // settings
-const unsigned int SCR_WIDTH = 1200;
-const unsigned int SCR_HEIGHT = 900;
+const size_t SCR_WIDTH = 1200;
+const size_t SCR_HEIGHT = 900;
 
 int main()
 {
@@ -69,16 +69,6 @@ int main()
 	// std::string s1(programPath);
 	// std::cout << s1 << "\n";
 	auto myApp = Scene::getInstance();
-
-	//Shader debugShader("debug.vert", "debug.frag");
-	//Shader rimShader(includeDirs, "rim.vert", "rim.frag");
-
-	//Model myModel("./resources/objects/SwordMinecraft/SwordMinecraft.obj");
-	//Model myModel = myApp->getModel(myApp->addModel("./resources/objects/nanosuit/nanosuit.obj", modelShaderIndex));
-	//Model dotlight = myApp->getModel(myApp->addModel("./resources/objects/cube/cube.obj", lightShaderIndex));
-
-	unsigned int pointLight = myApp->addLight(Light(point));
-
 
 	while (!glfwWindowShouldClose(myApp->window))
 	{

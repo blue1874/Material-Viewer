@@ -1,11 +1,16 @@
 #pragma once
 
 #include "mesh.h"
-#include "load_texture.h"
 class Model
 {
 	public:
-		/*  ����   */
+		/*  model info   */
+		size_t mesh_num;
+		size_t vertices_num;
+		size_t face_num;
+		size_t texture_num;
+
+		std::string _path;
 		Model();
 		Model(std::string &path);
 		Model(std::string &&path);

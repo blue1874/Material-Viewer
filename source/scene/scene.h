@@ -16,7 +16,7 @@
 #include "model.h"
 #include "light.h"
 #include "cubemap.h"
-#include "fbo.h"
+#include "mgl/fbo.h"
 
 #define SCREEN_WIDTH 1200
 #define SCREEN_HEIGHT 900
@@ -31,7 +31,8 @@ private:
 	std::shared_ptr<Model> userModel, cubeModel;
 	GLuint cubeTexture;
 	std::shared_ptr<Shader> userShader, cubemapShader, fboShader;
-	std::vector<Light> lights;
+	std::vector<std::shared_ptr<Light>> lights;
+	//std::vector<Light> lights;
 	// 
 	std::string resDir = RES_DIR;
 
@@ -79,7 +80,7 @@ public:
 	 * @param path model absolute path
 	 * */
 	void updateModel(std::string &&path);
-	unsigned int addLight(const Light &light);
+	void addLight(std::shared_ptr<Light> light);
 	/**
 	 * @brief change user shader
 	 * @param path shader absolute path
@@ -89,11 +90,15 @@ public:
 	 * @return a shared pointer point to user model
 	 * */
     std::shared_ptr<Model> getModel();
-    bool getLight(unsigned int lightIndex, Light &light);
-	void getLight(std::vector<Light> &_lights);
+    // bool getLight(unsigned int lightIndex, Light &light);
+	// void getLight(std::vector<Light> &_lights);
 	//FBO &getFBO();
 	void draw();
 
-	void drawUniform();
+	/**
+	 * @brief draw imGUI menu
+	 * including shader data, render option
+	 * */
+	void drawImGui();
 
 };
