@@ -11,11 +11,8 @@ uniform mat4 model;
 uniform mat4 view;
 uniform mat4 projection;
 
-uniform float model_scale;
-
 void main()
 {
-	// mat4 _model = model * model_scale;
     FragPos = vec3(model * vec4(aPos, 1.0));
 	Normal = mat3(transpose(inverse(model))) * aNormal;
 	TexCoord = aTexCoord;

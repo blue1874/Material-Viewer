@@ -23,6 +23,7 @@ FBO::FBO(unsigned int width, unsigned int height)
 	glBindRenderbuffer(GL_RENDERBUFFER, 0);
 	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo);
 
+	assert(glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE);
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
 		std::cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << std::endl;
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);

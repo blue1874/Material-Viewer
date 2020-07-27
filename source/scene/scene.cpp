@@ -10,14 +10,14 @@ float Scene::lastFrame = 0.0f;
 float Scene::deltaTime = 0.0f;;
 GLuint Scene::lastKeyState = GLFW_RELEASE;
 
-Scene* Scene::getInstance(unsigned int screenWidth, unsigned int screenHeight)
+Scene* Scene::getInstance(size_t screenWidth, size_t screenHeight)
 {
 	if(instance == 0) {
 		instance = new Scene(screenWidth, screenHeight);
 	}
 	return instance;
 }
-Scene::Scene(unsigned int screenWidth, unsigned int screenHeight)
+Scene::Scene(size_t screenWidth, size_t screenHeight)
 {
 
 	this->screenHeight = screenHeight;
@@ -68,7 +68,11 @@ void Scene::framebuffer_size_callback(GLFWwindow* window, int width, int height)
 	// make sure the viewport matches the new window dimensions; note that width and 
 	// height will be significantly larger than specified on retina displays.
 	glViewport(0, 0, width, height);
-
+	if(instance) {
+		instance->fbo = std::shared_ptr<FBO>(new FBO(width, height));
+		instance->mainCamera.screenWidth = instance->screenWidth = width;
+		instance->mainCamera.screenHeight = instance->screenHeight = height;
+	}
 	// need to be done
 	// Scene::screenWidth = width;
 	// Scene::screenHeight = height;
@@ -179,53 +183,14 @@ void Scene::drawImGui()
 			if (ImGui::BeginTabItem("shader"))
 			{
 				if(ImGui::TreeNode("user shader")) {
-					for(auto j : userShader->uniforms.members) {
-						if(std::holds_alternative<int>(j.second)) {
-							auto a = std::get<int>(j.second);
-							ImGui::InputInt(j.first.c_str(), &a);
-							userShader->updateUniform(j.first, a);
-						}
-						else if(std::holds_alternative<size_t>(j.second))
-						{
-							int a = std::get<size_t>(j.second);
-							ImGui::InputInt(j.first.c_str(), &a);
-							userShader->updateUniform(j.first, a);
-						}
-						else if(std::holds_alternative<float>(j.second)) {
-							auto a = std::get<float>(j.second);
-							ImGui::InputFloat(j.first.c_str(), &a);
-							userShader->updateUniform(j.first, a);
-						}
-						else if(std::holds_alternative<glm::vec3>(j.second)){
-							auto a = std::get<glm::vec3>(j.second);
-							ImGui::InputFloat3(j.first.c_str(), (float *)&a);
-							userShader->updateUniform(j.first, a);
-						}
+					for(auto &j : userShader->uniforms.members) {
+						std::visit(hookfunction(userShader, j.first), j.second);
 					}
 					ImGui::TreePop();				
 				}
 				if(ImGui::TreeNode("fbo shader")) {
-					for(auto j : fboShader->uniforms.members) {
-						if(std::holds_alternative<int>(j.second)) {
-							auto a = std::get<int>(j.second); 
-							ImGui::SliderInt(j.first.c_str(), &a, 0, 32);
-							fboShader->updateUniform(j.first, a);
-						}
-						else if(std::holds_alternative<size_t>(j.second))
-						{
-							int a = std::get<size_t>(j.second); 
-							ImGui::SliderInt(j.first.c_str(), &a, 0, 32);
-							fboShader->updateUniform(j.first, a);
-						}
-						else if(std::holds_alternative<float>(j.second)) {
-							auto a = std::get<float>(j.second); 
-							ImGui::SliderFloat(j.first.c_str(), &a, 0, 5);
-							fboShader->updateUniform(j.first, a);
-						}
-						// else if(std::holds_alternative<glm::vec3>(j.second)){
-						// 	float *f = (float *) &std::get<glm::vec3>(j.second);
-						// 	ImGui::InputFloat3(j.first.c_str(), f);
-						// }
+					for(auto &j : fboShader->uniforms.members) {
+						std::visit(hookfunction(fboShader, j.first), j.second);
 					}
 					ImGui::TreePop();				
 				}
@@ -239,7 +204,19 @@ void Scene::drawImGui()
 			}
 			if (ImGui::BeginTabItem("render"))
 			{
-				ImGui::Text("This is the Cucumber tab!\nblah blah blah blah blah");
+				ImGui::Text("Render options");
+				RenderOption::polygonMode.toGui();
+				RenderOption::drawCubeMap.toGUi();
+
+				RenderOption::depthTest.toGUi();
+				ImGui::SameLine(150);
+				RenderOption::depthMask.toGUi();
+				RenderOption::depthFunc.toGui();
+
+				RenderOption::clearColor.toGui();
+
+				RenderOption::cullFace.toGui();
+				RenderOption::cullFaceFunc.toGui();
 				ImGui::EndTabItem();
 			}
 			ImGui::EndTabBar();
@@ -279,45 +256,21 @@ std::shared_ptr<Model> Scene::getModel()
 	return userModel;
 }
 
-// bool Scene::getLight(unsigned int lightIndex, Light &light)
-// {
-// 	if (lightIndex < 0 || lightIndex > lights.size() - 1) return false;
-// 	else {
-// 		light = lights[lightIndex];
-// 		return true;
-// 	}
-// }
-
-// void Scene::getLight(std::vector<Light> &_lights)
-// {
-// 	_lights = lights;
-// }
-
-// FBO & Scene::getFBO()
-// {
-// 	return fbo;
-// }
-
 
 void Scene::draw()
 {
-	ImVec4 clearColor = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
-	ImVec4 rimColor = ImVec4(0.04f, 0.28f, 0.26f, 1.00f);
-	float shininess = 2.0f;
+
 
 	float currentFrame = glfwGetTime();
 	deltaTime = currentFrame - lastFrame;
 	lastFrame = currentFrame;
 
 	keyboard_process();
+	float shininess = 2.0f;
+
 
 	glBindFramebuffer(GL_FRAMEBUFFER, fbo->id);
-	glEnable(GL_CULL_FACE);
-	glEnable(GL_DEPTH_TEST);
-	glDepthFunc(GL_LEQUAL);
-
-	glClearColor(clearColor.x, clearColor.y, clearColor.z, clearColor.w);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+	RenderOption::handleRenderOption();
 	
 	userShader->use();
 	userShader->updateUniform("lightNum", (int)lights.size());
@@ -326,13 +279,14 @@ void Scene::draw()
 	userShader->updateUniform("viewPos", mainCamera.Position);
 	userModel->Draw(userShader, mainCamera, "");
 
-	glCullFace(GL_FRONT);
-	if(drawCubemap) {
+	if(RenderOption::drawCubeMap.value) {
+		glCullFace(GL_FRONT);
 		glActiveTexture(GL_TEXTURE0);
 		cubemapShader->use();
 		cubemapShader->updateUniform("skybox", 0);
 		glBindTexture(GL_TEXTURE_CUBE_MAP, cubeTexture);
 		cubeModel->Draw(cubemapShader, mainCamera, "cubemap");
+		glCullFace(GL_BACK);
 	}
 		
 
@@ -343,11 +297,11 @@ void Scene::draw()
 	//glStencilMask(0xFF);
 	//glStencilFunc(GL_ALWAYS, 1, 0xFF);
 
-	glCullFace(GL_BACK);
+	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glDisable(GL_CULL_FACE);
 	glDisable(GL_DEPTH_TEST);
-	glClearColor(clearColor.x, clearColor.y, clearColor.z, clearColor.w);
+	glClearColor(0.45f, 0.55f, 0.60f, 1.00f);
 	glClear(GL_COLOR_BUFFER_BIT);
 	fbo->draw(fboShader);
 	drawImGui();

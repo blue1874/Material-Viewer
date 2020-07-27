@@ -4,14 +4,7 @@
 #include <iostream>
 #include <vector>
 
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
-
-#include "imgui/imgui.h"
-#include "imgui/imgui_impl_glfw.h"
-#include "imgui/imgui_impl_opengl3.h"
-
+#include "console.h"
 #include "camera.h"
 #include "model.h"
 #include "light.h"
@@ -24,8 +17,8 @@
 
 class Scene {
 private:
-	unsigned int screenWidth;
-	unsigned int screenHeight;
+	size_t screenWidth;
+	size_t screenHeight;
 
 	// used by user / cubemap
 	std::shared_ptr<Model> userModel, cubeModel;
@@ -37,7 +30,7 @@ private:
 	std::string resDir = RES_DIR;
 
 
-	unsigned int currentShader;
+	size_t currentShader;
 	// scene options
 	bool drawCubemap = true;
 
@@ -66,7 +59,7 @@ private:
 
 	std::shared_ptr<FBO> fbo;
 	//GLuint fbo;
-	Scene(unsigned int screenWidth, unsigned int screenHeight);
+	Scene(size_t screenWidth, size_t screenHeight);
 	~Scene();
 	bool initOpenGLContext();
 	void initImGui();
@@ -74,7 +67,7 @@ public:
 	static Camera mainCamera;
 	GLFWwindow* window;
 	std::vector<std::string> includeDirs;
-	static Scene* getInstance(unsigned int screenWidth = SCREEN_WIDTH, unsigned int screenHeight = SCREEN_HEIGHT);
+	static Scene* getInstance(size_t screenWidth = SCREEN_WIDTH, size_t screenHeight = SCREEN_HEIGHT);
 	/**
 	 * @brief change user model
 	 * @param path model absolute path
@@ -90,7 +83,7 @@ public:
 	 * @return a shared pointer point to user model
 	 * */
     std::shared_ptr<Model> getModel();
-    // bool getLight(unsigned int lightIndex, Light &light);
+    // bool getLight(size_t lightIndex, Light &light);
 	// void getLight(std::vector<Light> &_lights);
 	//FBO &getFBO();
 	void draw();

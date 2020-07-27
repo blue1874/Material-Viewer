@@ -48,6 +48,10 @@
         "bitset": "cpp",
         "ctime": "cpp",
         "iterator": "cpp",
-        "regex": "cpp"
+        "regex": "cpp",
+        "chrono": "cpp",
+        "codecvt": "cpp",
+        "functional": "cpp",
+        "ratio": "cpp"
     }
 }

@@ -59,7 +59,7 @@ void Mesh::draw(std::shared_ptr<Shader> shader, Camera &camera, std::string type
 	}
 	else {
 		//int normalN = 0, ambientN = 0, diffuseN = 0, specularN = 0;
-		shader->updateUniform("model", glm::mat4(1.0f));
+		shader->updateUniform("model", glm::scale(glm::mat4(1.0f), glm::vec3(0.1f)));
 		shader->updateUniform("material.ambient", material.Ka);
 		shader->updateUniform("material.diffuse", material.Kd);
 		shader->updateUniform("material.specular", material.Ks);

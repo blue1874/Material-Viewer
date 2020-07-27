@@ -56,6 +56,7 @@
 //	glBindVertexArray(0);
 //	glUseProgram(0);
 //};
+
 // settings
 const size_t SCR_WIDTH = 1200;
 const size_t SCR_HEIGHT = 900;

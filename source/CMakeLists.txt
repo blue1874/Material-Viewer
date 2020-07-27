@@ -1,6 +1,10 @@
 # CMake 最低版本号要求
-cmake_minimum_required (VERSION 2.8)
+cmake_minimum_required (VERSION 3.5)
 
+# 设置VCPKG路径
+set(DVCPKG_TARGET_TRIPLET "x86-windows")
+set(DCMAKE_TOOLCHAIN_FILE "D:/blue/Coding/opengl-learn/vcpkg-mirror/vcpkg/scripts/buildsystems/vcpkg.cmake")
+set(DCMAKE_EXPORT_COMPILE_COMMANDS ON)
 # 项目信息
 project (opengl)
 
@@ -20,6 +24,7 @@ aux_source_directory(./tool TOOL)
 include_directories(${CMAKE_SOURCE_DIR})
 # 指定生成目标
 add_executable(${PROJECT_NAME} ${APP} ${IMGUI} ${IO} ${MGL} ${SCENE} ${TOOL})
+
 
 find_package(glm CONFIG REQUIRED)
 target_link_libraries(${PROJECT_NAME} PRIVATE glm)

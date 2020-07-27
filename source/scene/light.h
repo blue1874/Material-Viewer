@@ -7,17 +7,18 @@
 #include "mgl/shader.h"
 constexpr auto maxLightNum = 8;
 
-// enum LightType {
-// 	empty = -1, point, direct, flash
-// };
+enum LightType {
+	empty = -1, point, direct, flash
+};
 
 class Light
 {
 public:
 	glm::vec3 color;
 	float intensity;
+	LightType type;
 
-	Light() : color(glm::vec3(1.0)), intensity(1.0f) {}
+	Light(LightType _type) : type(_type), color(glm::vec3(1.0)), intensity(1.0f) {}
 	
 	virtual void setLightUniform(std::shared_ptr<Shader> shader, size_t index) {};
 
@@ -31,10 +32,11 @@ public:
 	float linear;
 	float quadratic;
 
-	PointLight() : Light(), position(glm::vec3(0.0f, 5.0f, 0.0f)), constant(1.0f), linear(0.09f), quadratic(0.032f) {}
+	PointLight() : Light(LightType::point), position(glm::vec3(0.0f, 5.0f, 0.0f)), constant(1.0f), linear(0.09f), quadratic(0.032f) {}
 	void setLightUniform(std::shared_ptr<Shader> shader, size_t index)
 	{
-		std::string uniformPrefix = "light[" + std::to_string(index) + "].";
+		std::string uniformPrefix = "lights[" + std::to_string(index) + "].";
+		shader->updateUniform(uniformPrefix + "type", type);
 		shader->updateUniform(uniformPrefix + "color", color);
 		shader->updateUniform(uniformPrefix + "intensity", intensity);
 		shader->updateUniform(uniformPrefix + "position", position);
@@ -49,11 +51,12 @@ class DirectLight : public Light
 public:
 	glm::vec3 direction;
 
-	DirectLight() : Light(), direction(glm::vec3(0.0f, 0.0f, 1.0f)) {}
+	DirectLight() : Light(LightType::direct), direction(glm::vec3(0.0f, 0.0f, 1.0f)) {}
 
 	void setLightUniform(std::shared_ptr<Shader> shader, size_t index)
 	{
-		std::string uniformPrefix = "light[" + std::to_string(index) + "].";
+		std::string uniformPrefix = "lights[" + std::to_string(index) + "].";
+		shader->updateUniform(uniformPrefix + "type", type);
 		shader->updateUniform(uniformPrefix + "color", color);
 		shader->updateUniform(uniformPrefix + "intensity", intensity);
 		shader->updateUniform(uniformPrefix + "direction", direction);
