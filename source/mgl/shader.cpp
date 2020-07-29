@@ -6,7 +6,7 @@ Shader::Shader()
 {
 }
 
-Shader::Shader(const std::vector<std::string> &includeDirs, const std::string &vertexPath, const std::string &fragmentPath, const std::string &geometryPath)
+Shader::Shader(const std::string &vertexPath, const std::string &fragmentPath, const std::string &geometryPath)
 {
 	// 1. retrieve the vertex/fragment source code from filePath
 	std::string vertexCode;
@@ -15,7 +15,7 @@ Shader::Shader(const std::vector<std::string> &includeDirs, const std::string &v
 
 	ID = glCreateProgram();
 
-	if (loadFromPath(vertexPath, vertexCode, includeDirs))
+	if (loadFromPath(vertexPath, vertexCode))
 	{
 		GLuint vert;
 		const char *src = vertexCode.c_str();
@@ -27,7 +27,7 @@ Shader::Shader(const std::vector<std::string> &includeDirs, const std::string &v
 		glDeleteShader(vert);
 
 	}
-	if (loadFromPath(fragmentPath, fragmentCode, includeDirs))
+	if (loadFromPath(fragmentPath, fragmentCode))
 	{
 		GLuint frag;
 		const char *src = fragmentCode.c_str();
@@ -39,7 +39,7 @@ Shader::Shader(const std::vector<std::string> &includeDirs, const std::string &v
 		glDeleteShader(frag);
 
 	}
-	if (geometryPath.size() && loadFromPath(geometryPath, geometryCode, includeDirs))
+	if (geometryPath.size() && loadFromPath(geometryPath, geometryCode))
 	{
 		GLuint geom;
 		const char *src = geometryCode.c_str();
@@ -67,11 +67,11 @@ bool Shader::hasInclude(std::string & includeStr)
 	return false;
 }
 
-bool Shader::loadFromPath(const std::string & _path, std::string & src, const std::vector<std::string>& _include_folders)
+bool Shader::loadFromPath(const std::string & _path, std::string & src)
 {
 	std::ifstream file;
 	
-	file.open(_path);
+	file.open(pathLoader::getAbsPath(_path));
 	if (!file.is_open()) {
 		//std::cout << "file open failed\n please check your path" << _path << "\n";
 		return false;
@@ -86,11 +86,8 @@ bool Shader::loadFromPath(const std::string & _path, std::string & src, const st
 			if (begin != end) {
 				std::string includePath(line.substr(begin + 1, end - begin - 1));
 				if (!hasInclude(includePath)) {
-					for (auto str : _include_folders) {
-						if (loadFromPath(str + includePath, includeSrc, _include_folders)) {
-							src += "\n" + includeSrc + "\n";
-							break;
-						}
+					if (loadFromPath(includeDir + "/" + includePath, includeSrc)) {
+						src += "\n" + includeSrc + "\n";
 					}
 					dependencies.push_back(includePath);
 				}
@@ -183,7 +180,9 @@ void Shader::setAllUniforms()
 			setUniform(i.first, std::get<glm::mat4>(i.second)); 
 			continue; 
 			}
-		else {}
+		else {
+			1;
+		}
 	}
 }
 // utility function for checking shader compilation/linking errors.

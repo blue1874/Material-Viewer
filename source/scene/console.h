@@ -1,6 +1,7 @@
 #include <type_traits>
 
 #include "imgui/imgui.h"
+#include "imgui/imfilebrowser.h"
 #include "imgui/imgui_impl_glfw.h"
 #include "imgui/imgui_impl_opengl3.h"
 
@@ -10,6 +11,7 @@
 
 #include "mgl/uniform.h"
 #include "mgl/shader.h"
+#include "tool/path.h"
 
 #define MACRO_TO_STR(M) #M
 
@@ -76,6 +78,33 @@ public:
     }    
 };
 
+class fileGui : public baseToGui
+{
+private:
+public:
+	std::string filePath;
+	ImGui::FileBrowser fileBrowser;
+	bool needReload = false;
+	fileGui(std::string &&_name, std::string defaultFilePath = "") : baseToGui(_name), filePath(defaultFilePath) {
+		fileBrowser.SetTitle(_name);
+		fileBrowser.SetPwd(pathLoader::cwd);
+	};
+	void toGUi()
+	{
+		ImGui::Text(("model path: " + filePath).c_str());
+		if (ImGui::Button("file browser")) fileBrowser.Open();
+		fileBrowser.Display();
+		if (fileBrowser.HasSelected())
+		{
+			if (filePath.compare(fileBrowser.GetSelected().string())) {
+				filePath = fileBrowser.GetSelected().string();
+				needReload = true;
+			}
+			fileBrowser.ClearSelected();
+		}
+	}
+};
+
 namespace RenderOption {
 
     // using RenderPointer = std::shared_ptr<baseToGui>;
@@ -105,6 +134,11 @@ namespace RenderOption {
     std::vector<std::string>{"GL_BACK", "GL_FRONT", "GL_FRONT_AND_BACK"},
     std::vector<size_t>{GL_BACK, GL_FRONT, GL_FRONT_AND_BACK}, 0);
 
+	// model file
+	inline fileGui modelFile("select model file", DefaultWorkFlow::MODEL_PATH);
+
+	// MSAA enbale
+	inline boolToGui enableMSAA("MSAA", true);
     inline void handleRenderOption()
     {
         glPolygonMode(GL_FRONT_AND_BACK, polygonMode.options[polygonMode.selected_index]);
@@ -118,6 +152,7 @@ namespace RenderOption {
         glCullFace(cullFaceFunc.options[cullFaceFunc.selected_index]);
         
 	    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+
     };
 };
 

@@ -7,6 +7,7 @@
 #include <string>
 #include <vector>
 
+#include "tool/path.h"
 #include "stb_image.h"
 
 unsigned int load_texture(std::string path = std::string(), int warp_type = GL_REPEAT, int min_filter_type = GL_LINEAR, int max_fileter_type = GL_LINEAR);

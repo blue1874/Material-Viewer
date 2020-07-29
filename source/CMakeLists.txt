@@ -1,10 +1,6 @@
 # CMake 最低版本号要求
 cmake_minimum_required (VERSION 3.5)
 
-# 设置VCPKG路径
-set(DVCPKG_TARGET_TRIPLET "x86-windows")
-set(DCMAKE_TOOLCHAIN_FILE "D:/blue/Coding/opengl-learn/vcpkg-mirror/vcpkg/scripts/buildsystems/vcpkg.cmake")
-set(DCMAKE_EXPORT_COMPILE_COMMANDS ON)
 # 项目信息
 project (opengl)
 

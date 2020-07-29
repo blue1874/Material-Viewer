@@ -8,12 +8,11 @@
 #include "camera.h"
 #include "model.h"
 #include "light.h"
-#include "cubemap.h"
+#include "tool/path.h"
 #include "mgl/fbo.h"
 
 #define SCREEN_WIDTH 1200
 #define SCREEN_HEIGHT 900
-#define RES_DIR "../../resources/"
 
 class Scene {
 private:
@@ -25,31 +24,28 @@ private:
 	GLuint cubeTexture;
 	std::shared_ptr<Shader> userShader, cubemapShader, fboShader;
 	std::vector<std::shared_ptr<Light>> lights;
-	//std::vector<Light> lights;
-	// 
-	std::string resDir = RES_DIR;
 
-
-	size_t currentShader;
-	// scene options
-	bool drawCubemap = true;
-
-	// render optitions
+	static glm::mat4 modelMat;
 
 	// input helper variable
 	static bool displayUI;
 	static bool firstMouse;
-	static float lastX ;
-	static float lastY;
+	static double lastX ;
+	static double lastY;
 	static float lastFrame;
 	static float deltaTime;
 	static GLuint lastKeyState;
+	static bool mouse_left;
+	static GLuint lastMouseKeyState;
+	static glm::mat4 lastModelMat;
 
 	/**
 	 * @brief input event callback function
 	 * */
 	static void framebuffer_size_callback(GLFWwindow* window, int width, int height);
+	// static void mouse_button_callback(GLFWwindow* window, int button, int action, int mods);
 	static void mouse_callback(GLFWwindow *window, double xpos, double ypos);
+	static void mouse_ScrollCallback(GLFWwindow *window, double xoffset, double yoffset);
 	/**
 	 * @brief process keyborad input, as callback provided by glfw can not handle multiple key input
 	 * */
@@ -66,13 +62,12 @@ private:
 public:
 	static Camera mainCamera;
 	GLFWwindow* window;
-	std::vector<std::string> includeDirs;
 	static Scene* getInstance(size_t screenWidth = SCREEN_WIDTH, size_t screenHeight = SCREEN_HEIGHT);
 	/**
 	 * @brief change user model
 	 * @param path model absolute path
 	 * */
-	void updateModel(std::string &&path);
+	void updateModel(std::string path);
 	void addLight(std::shared_ptr<Light> light);
 	/**
 	 * @brief change user shader
@@ -83,9 +78,6 @@ public:
 	 * @return a shared pointer point to user model
 	 * */
     std::shared_ptr<Model> getModel();
-    // bool getLight(size_t lightIndex, Light &light);
-	// void getLight(std::vector<Light> &_lights);
-	//FBO &getFBO();
 	void draw();
 
 	/**

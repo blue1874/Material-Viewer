@@ -7,10 +7,19 @@
 #include "shader.h"
 struct FBO
 {
+	size_t width;
+	size_t height;
 	GLuint id;
 	GLuint texture;
 	GLuint rbo;
-	float quadVertices[24] = { // vertex attributes for a quad that fills the entire screen in Normalized Device Coordinates.
+
+	GLuint MSAATex;
+	GLuint MSAARbo;
+	size_t sample_num;
+	bool enableMSAA;
+
+	// vertex attributes for a quad that fills the entire screen in Normalized Device Coordinates.
+	float quadVertices[24] = { 
 		// positions   // texCoords
 		-1.0f,  1.0f,  0.0f, 1.0f,
 		-1.0f, -1.0f,  0.0f, 0.0f,
@@ -23,7 +32,8 @@ struct FBO
 
 	GLuint quadVAO, quadVBO;
 	FBO();
-	FBO(unsigned int width, unsigned int height);
+	FBO(size_t _width, size_t _height, bool enable_msaa = true, size_t _sample_num = 4);
+	void switchMSAA();
 	~FBO();
 	void draw(std::shared_ptr<Shader> shader);
 };

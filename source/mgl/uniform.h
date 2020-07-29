@@ -39,7 +39,9 @@ inline std::map<std::string, size_t> typeIndex = {
     std::pair<std::string, size_t>("mat4", mat4),
     std::pair<std::string, size_t>("sampler1D", _int),
     std::pair<std::string, size_t>("sampler2D", _int),
+	std::pair<std::string, size_t>("sampler2DMS", _int),
     std::pair<std::string, size_t>("samplerCube", _int),
+
     };
     
 template <class Variant, std::size_t I = 0>

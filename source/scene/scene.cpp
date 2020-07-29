@@ -4,11 +4,15 @@ Scene* Scene::instance = 0;
 Camera Scene::mainCamera = Camera(SCREEN_WIDTH, SCREEN_HEIGHT);
 bool Scene::displayUI = false;
 bool Scene::firstMouse = true;
-float Scene::lastX = SCREEN_HEIGHT / 2;
-float Scene::lastY = SCREEN_WIDTH / 2;
+double Scene::lastX = SCREEN_HEIGHT / 2;
+double Scene::lastY = SCREEN_WIDTH / 2;
 float Scene::lastFrame = 0.0f;
 float Scene::deltaTime = 0.0f;;
 GLuint Scene::lastKeyState = GLFW_RELEASE;
+glm::mat4 Scene::modelMat = glm::scale(glm::mat4(1.0f), glm::vec3(0.1f));
+bool Scene::mouse_left = false;
+GLuint Scene::lastMouseKeyState = GLFW_RELEASE;
+glm::mat4 Scene::lastModelMat = modelMat;
 
 Scene* Scene::getInstance(size_t screenWidth, size_t screenHeight)
 {
@@ -26,9 +30,6 @@ Scene::Scene(size_t screenWidth, size_t screenHeight)
 	initOpenGLContext();
 	initImGui();
 
-	includeDirs.push_back("");
-	includeDirs.push_back("./shader/");
-
 	{
 		/**
 		 * add default cube
@@ -37,19 +38,17 @@ Scene::Scene(size_t screenWidth, size_t screenHeight)
 		cubeModel = std::make_shared<Model>(Cubemap::MODEL_PATH);
 		cubeTexture = load_cubemap(Cubemap::faces);
 		// shader() arg 1 should be moved
-		cubemapShader = std::make_shared<Shader>(Shader(includeDirs, Cubemap::VERT_PATH, Cubemap::FRAG_PATH));
+		cubemapShader = std::make_shared<Shader>(Shader(Cubemap::VERT_PATH, Cubemap::FRAG_PATH));
 
-		userModel = std::make_shared<Model>("./resources/objects/head/head.obj");
+		userModel = std::make_shared<Model>(DefaultWorkFlow::MODEL_PATH);
 		// shader() arg 1 should be moved
-		userShader = std::make_shared<Shader>(Shader(includeDirs, "./shader/shader.vert", "./shader/shader.frag"));
-		fboShader = std::make_shared<Shader>(Shader(includeDirs, "./shader/fbo.vert", "./shader/fbo.frag"));
+		userShader = std::make_shared<Shader>(Shader(DefaultWorkFlow::VERT_PATH, DefaultWorkFlow::FRAG_PATH));
+		fboShader = std::make_shared<Shader>(Shader("./shader/postprocess/fbo.vert", "./shader/postprocess/fbo.frag"));
 	}
 	//
 	addLight(std::make_shared<DirectLight>(DirectLight()));
 	mainCamera = Camera(screenWidth, screenHeight);
 	fbo = std::shared_ptr<FBO>(new FBO(screenWidth, screenHeight));
-	currentShader = 0;
-	//fbo = FBO(screenWidth, screenHeight);
 	
 	lastX = screenWidth / 2;
 	lastY = screenHeight / 2;
@@ -77,39 +76,73 @@ void Scene::framebuffer_size_callback(GLFWwindow* window, int width, int height)
 	// Scene::screenWidth = width;
 	// Scene::screenHeight = height;
 }
+//void Scene::mouse_button_callback(GLFWwindow * window, int button, int action, int mods)
+//{
+//	if (button == GLFW_MOUSE_BUTTON_LEFT)
+//	{
+//		if(action == GLFW_PRESS) mouse_left = true;
+//		else mouse_left = false;
+//		lastMouseKeyState = action;
+//	}
+//}
 void Scene::keyboard_process()
 {
+
 	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
 		glfwSetWindowShouldClose(window, true);
+
+
 	if (lastKeyState == GLFW_RELEASE && glfwGetKey(window, GLFW_KEY_TAB) == GLFW_PRESS)
 		displayUI = displayUI ? false : true;	
 	lastKeyState = glfwGetKey(window, GLFW_KEY_TAB);
-	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-		mainCamera.ProcessKeyboard(FORWARD, deltaTime);
-	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-		mainCamera.ProcessKeyboard(BACKWARD, deltaTime);
-	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-		mainCamera.ProcessKeyboard(LEFT, deltaTime);
-	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-		mainCamera.ProcessKeyboard(RIGHT, deltaTime);
+
+	mouse_left = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS ? true : false;
+	if (lastMouseKeyState == GLFW_RELEASE && mouse_left == GLFW_PRESS)
+	{
+		glfwGetCursorPos(window, &lastX, &lastY);
+		lastModelMat = modelMat;
+	}
+	lastMouseKeyState = mouse_left;
+	// FPS camera style
+	//if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+	//	mainCamera.ProcessKeyboard(FORWARD, deltaTime);
+	//if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+	//	mainCamera.ProcessKeyboard(BACKWARD, deltaTime);
+	//if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+	//	mainCamera.ProcessKeyboard(LEFT, deltaTime);
+	//if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+	//	mainCamera.ProcessKeyboard(RIGHT, deltaTime);
 }
 void Scene::mouse_callback(GLFWwindow *window, double xpos, double ypos)
 {
-	if (displayUI) return;
-	if (firstMouse)
+	// rotate model while mouse_ledt button is pressed
+	if (mouse_left)
 	{
-		lastX = xpos;
-		lastY = ypos;
-		firstMouse = false;
+		modelMat = glm::rotate(lastModelMat, glm::radians(float(xpos - lastX) / 10), glm::vec3(0.0f, 1.0f, 0.0f));
+		modelMat = glm::rotate(modelMat, glm::radians(float(ypos - lastY) / 10), glm::vec3(1.0f, 0.0f, 0.0f));
 	}
 
-	float xoffset = xpos - lastX;
-	float yoffset = lastY - ypos; // reversed since y-coordinates go from bottom to top
+	// fps camera style
+	//if (firstMouse)
+	//{
+	//	lastX = xpos;
+	//	lastY = ypos;
+	//	firstMouse = false;
+	//}
 
-	lastX = xpos;
-	lastY = ypos;
+	//float xoffset = xpos - lastX;
+	//float yoffset = lastY - ypos; // reversed since y-coordinates go from bottom to top
 
-	mainCamera.ProcessMouseMovement(xoffset, yoffset);	
+	//lastX = xpos;
+	//lastY = ypos;
+
+	//mainCamera.ProcessMouseMovement(xoffset, yoffset);	
+}
+
+void Scene::mouse_ScrollCallback(GLFWwindow * window, double xoffset, double yoffset)
+{
+	auto scale_para = 1 + (yoffset / 10);
+	modelMat = glm::scale(modelMat, glm::vec3(scale_para));
 }
 
 bool Scene::initOpenGLContext()
@@ -120,6 +153,7 @@ bool Scene::initOpenGLContext()
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+	//glfwWindowHint(GLFW_SAMPLES, 4);
 
 	window = glfwCreateWindow(screenWidth, screenHeight, "LearnOpenGL", NULL, NULL);
 
@@ -132,9 +166,6 @@ bool Scene::initOpenGLContext()
 		return false;
 	}
 	glfwMakeContextCurrent(window);
-	//glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
-	//glfwSetCursorPosCallback(window, mouse_callback);
-	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 	// glad: load all OpenGL function pointers
 	// ---------------------------------------
 	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
@@ -146,7 +177,9 @@ bool Scene::initOpenGLContext()
 	// binding callback function
 	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 	glfwSetCursorPosCallback(window, mouse_callback);
-	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+	glfwSetScrollCallback(window, mouse_ScrollCallback);
+	// glfwSetMouseButtonCallback(window, mouse_button_callback);
+	// glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 	return true;
 }
 
@@ -171,7 +204,7 @@ void Scene::initImGui()
 void Scene::drawImGui()
 {
 	if(displayUI) {
-		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+		//glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 		firstMouse = true;
 		ImGui_ImplOpenGL3_NewFrame();
 		ImGui_ImplGlfw_NewFrame();
@@ -200,6 +233,7 @@ void Scene::drawImGui()
 			{
 				ImGui::Text("user model");
 				ImGui::Text("%d meshes, %d vertices, %d faces, %d textures", userModel->mesh_num, userModel->vertices_num, userModel->face_num, userModel->texture_num);
+				RenderOption::modelFile.toGUi();
 				ImGui::EndTabItem();
 			}
 			if (ImGui::BeginTabItem("render"))
@@ -217,6 +251,10 @@ void Scene::drawImGui()
 
 				RenderOption::cullFace.toGui();
 				RenderOption::cullFaceFunc.toGui();
+
+				RenderOption::enableMSAA.toGUi();
+				RenderOption::enableMSAA.value != fbo->enableMSAA ? fbo->switchMSAA() : 1;
+
 				ImGui::EndTabItem();
 			}
 			ImGui::EndTabBar();
@@ -235,12 +273,15 @@ void Scene::drawImGui()
 		glViewport(0, 0, display_w, display_h);
 		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 	}
-	else glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+	else
+	{
+		//glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+	}
 
 }
 
 
-void Scene::updateModel(std::string && path)
+void Scene::updateModel(std::string path)
 {
 	userModel = std::make_shared<Model>(path);
 }
@@ -271,13 +312,16 @@ void Scene::draw()
 
 	glBindFramebuffer(GL_FRAMEBUFFER, fbo->id);
 	RenderOption::handleRenderOption();
-	
+	if (RenderOption::modelFile.needReload) {
+		updateModel(RenderOption::modelFile.filePath);
+		RenderOption::modelFile.needReload = false;
+	}
 	userShader->use();
 	userShader->updateUniform("lightNum", (int)lights.size());
 	for (int i = 0; i < lights.size(); i++) lights[i]->setLightUniform(userShader, i);
 	userShader->updateUniform("material.shininess", shininess);
 	userShader->updateUniform("viewPos", mainCamera.Position);
-	userModel->Draw(userShader, mainCamera, "");
+	userModel->Draw(userShader, mainCamera, modelMat, "");
 
 	if(RenderOption::drawCubeMap.value) {
 		glCullFace(GL_FRONT);
@@ -285,7 +329,7 @@ void Scene::draw()
 		cubemapShader->use();
 		cubemapShader->updateUniform("skybox", 0);
 		glBindTexture(GL_TEXTURE_CUBE_MAP, cubeTexture);
-		cubeModel->Draw(cubemapShader, mainCamera, "cubemap");
+		cubeModel->Draw(cubemapShader, mainCamera, modelMat, "cubemap");
 		glCullFace(GL_BACK);
 	}
 		

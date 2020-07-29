@@ -2,17 +2,8 @@
 #include <GLFW/glfw3.h>
 #include <iostream>
 
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
-
-#include "imgui/imgui.h"
-#include "imgui/imgui_impl_glfw.h"
-#include "imgui/imgui_impl_opengl3.h"
-
 #include "tool/debug.h"
 #include "scene/scene.h"
-#include "mgl/fbo.h"
 
 #include <stdio.h>  /* defines FILENAME_MAX */
 #include <direct.h>
@@ -57,11 +48,7 @@
 //	glUseProgram(0);
 //};
 
-// settings
-const size_t SCR_WIDTH = 1200;
-const size_t SCR_HEIGHT = 900;
-
-int main()
+int main(int argc, char *argv[])
 {
 	// glfw: initialize and configure
 	// ------------------------------

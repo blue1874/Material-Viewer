@@ -4,39 +4,25 @@ Model::Model()
 {
 }
 
-Model::Model(std::string &path) : mesh_num(0), vertices_num(0), face_num(0), texture_num(0), _path(path)
+Model::Model(std::string path) : mesh_num(0), vertices_num(0), face_num(0), texture_num(0), _path(pathLoader::getAbsPath(path))
 {
 	Assimp::Importer importer;
-	const aiScene *scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_GenNormals);
+	const aiScene *scene = importer.ReadFile(_path.string(), aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_GenNormals);
 
 	if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
 	{
 		std::cout << "ERROR::ASSIMP::" << importer.GetErrorString() << std::endl;
 		return;
 	}
-	directory = path.substr(0, path.find_last_of('/'));
+	directory = _path.parent_path().string();
 
 	processNode(scene->mRootNode, scene);
 }
 
-Model::Model(std::string &&path) : mesh_num(0), vertices_num(0), face_num(0), texture_num(0), _path(path)
+
+void Model::Draw(std::shared_ptr<Shader> shader, Camera &camera, glm::mat4 &modelMat, std::string type)
 {
-	Assimp::Importer importer;
-	const aiScene *scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_GenNormals);
-
-	if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
-	{
-		std::cout << "ERROR::ASSIMP::" << importer.GetErrorString() << std::endl;
-		return;
-	}
-	directory = path.substr(0, path.find_last_of('/'));
-
-	processNode(scene->mRootNode, scene);
-}
-
-void Model::Draw(std::shared_ptr<Shader> shader, Camera &camera, std::string type)
-{
-	for (auto mesh : meshes) mesh.draw(shader, camera, type);
+	for (auto mesh : meshes) mesh.draw(shader, camera, modelMat, type);
 }
 
 void Model::processNode(aiNode * node, const aiScene * scene)

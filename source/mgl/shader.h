@@ -9,9 +9,11 @@
 #include <iostream>
 #include <map>
 
+#include "tool/path.h"
 #include "uniform.h"
 #include "shaderTextProcess.h"
 
+const std::string includeDir("shader/");
 class Shader
 {
 public:
@@ -19,12 +21,9 @@ public:
 	// std::string name;
 	std::vector<std::string> dependencies;
 	Uniforms uniforms;
-	//std::vector<uniform<std::any>> uniforms;
-    // constructor generates the shader on the fly
-    // ------------------------------------------------------------------------
-	//Shader(const std::string &vertexSrc, const std::string &fragmentSrc, const std::string &geometrySrc = "");
+
 	Shader();
-	Shader(const std::vector<std::string> &includeDirs, const std::string &vertexPath, const std::string &fragmentPath, const std::string &geometryPath = "");
+	Shader(const std::string &vertexPath, const std::string &fragmentPath, const std::string &geometryPath = "");
     // activate the shader
 
 	inline void use() { glUseProgram(ID); }
@@ -32,7 +31,7 @@ public:
 	void setAllUniforms();
 
 	bool hasInclude(std::string &includeStr);
-	bool loadFromPath(const std::string &_path, std::string &src, const std::vector<std::string> &_include_folders);
+	bool loadFromPath(const std::string &_path, std::string &src);
 private:
     // utility function for checking shader compilation/linking errors.
     // ------------------------------------------------------------------------

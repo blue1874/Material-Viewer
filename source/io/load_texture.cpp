@@ -21,7 +21,7 @@ unsigned int load_texture(std::string path, int warp_type, int min_filter_type, 
 	{
 		// 加载并生成纹理
 		int width, height, nrChannels;
-		unsigned char *data = stbi_load(path.c_str(), &width, &height, &nrChannels, 0);
+		unsigned char *data = stbi_load(pathLoader::getAbsPath(path).string().c_str(), &width, &height, &nrChannels, 0);
 		if (data)
 		{
 			if (nrChannels == 3) glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
@@ -48,7 +48,7 @@ unsigned int load_cubemap(std::vector<std::string>& faces)
 	int width, height, nrChannels;
 	for (unsigned int i = 0; i < faces.size(); i++)
 	{
-		unsigned char *data = stbi_load(faces[i].c_str(), &width, &height, &nrChannels, 0);
+		unsigned char *data = stbi_load(pathLoader::getAbsPath(faces[i]).string().c_str(), &width, &height, &nrChannels, 0);
 		if (data)
 		{
 			glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i,
