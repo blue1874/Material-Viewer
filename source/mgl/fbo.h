@@ -18,6 +18,7 @@ struct FBO
 	size_t sample_num;
 	bool enableMSAA;
 
+	float gamma = 1.0f;
 	// vertex attributes for a quad that fills the entire screen in Normalized Device Coordinates.
 	float quadVertices[24] = { 
 		// positions   // texCoords

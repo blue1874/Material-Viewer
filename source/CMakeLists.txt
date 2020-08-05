@@ -19,7 +19,7 @@ aux_source_directory(./tool TOOL)
 
 include_directories(${CMAKE_SOURCE_DIR})
 # 指定生成目标
-add_executable(${PROJECT_NAME} ${APP} ${IMGUI} ${IO} ${MGL} ${SCENE} ${TOOL})
+add_executable(${PROJECT_NAME} ${APP} ${IMGUI} ${IO} ${MGL} ${SCENE} ${TOOL} "scene/ball.h"  "scene/material.h" "scene/cube.h" "scene/cube.cpp"  "scene/material.cpp")
 
 
 find_package(glm CONFIG REQUIRED)

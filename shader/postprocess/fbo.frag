@@ -14,6 +14,8 @@ uniform float time;
 
 uniform float splitIntensity;
 
+uniform float gamma;
+
 float randomNoise(float x, float y)
 {
     return fract(sin(dot(vec2(x, y), vec2(12.9898, 78.233))) * 43758.5453);
@@ -46,8 +48,14 @@ vec4 RGB_Split()
 		return vec4(R, G, B, 1);
 	}
 }
+
+vec4 gammaCorrection(vec4 color)
+{
+	return vec4(pow(color.rgb, vec3(1.0 / gamma)), 1.0);	
+}
+
 void main()
 { 
     // vec4 srcColor = texture(fbo, TexCoords);
-    FragColor = RGB_Split();
+    FragColor = gammaCorrection(RGB_Split());
 }

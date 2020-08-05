@@ -1,3 +1,5 @@
+#pragma once
+
 #include <type_traits>
 
 #include "imgui/imgui.h"
@@ -20,19 +22,21 @@ class baseToGui
 private:
 public:
     std::string name;
-    baseToGui(std::string _name) : name(_name) {};
-    virtual void toGui() {};
+    baseToGui(std::string _name) : name(_name) {}
+    virtual void toGui() {}
 };
 
+template<class T>
 class enumToGui : public baseToGui
 {
 private:
     std::vector<std::string> optionStr;
 public:
     size_t selected_index;
-    std::vector<size_t> options;
-    enumToGui(std::string &&_name, std::vector<std::string> &&_optionStr, std::vector<size_t> &&_options, size_t _index = 0) : 
-    baseToGui(_name), optionStr(_optionStr), options(_options), selected_index(_index) {}
+
+    std::vector<T> options;
+    enumToGui(std::string&& _name, std::vector<std::string>&& _optionStr, std::vector<T>&& _options, size_t _index = 0) :
+        baseToGui(_name), optionStr(_optionStr), options(_options), selected_index(_index) {}
     void toGui()
     {
         if (ImGui::BeginCombo(name.c_str(), optionStr[selected_index].c_str()))
@@ -57,7 +61,7 @@ class boolToGui : public baseToGui
 private:
 public:
     bool value;
-    boolToGui(std::string &&_name, bool defaultValue = false) : baseToGui(_name), value(defaultValue) {};
+    boolToGui(std::string&& _name, bool defaultValue = false) : baseToGui(_name), value(defaultValue) {}
     void toGUi()
     {
         ImGui::Checkbox(name.c_str(), &value);
@@ -69,13 +73,13 @@ class colorToGui : public baseToGui
 private:
 public:
     glm::vec4 color;
-    colorToGui(std::string &&_name, glm::vec4 defaultValue) : baseToGui(_name), color(defaultValue) {};
+    colorToGui(std::string&& _name, glm::vec4 defaultValue) : baseToGui(_name), color(defaultValue) {}
     void toGUi()
     {
         // why color wiget not show ?!
-        ImGui::ColorEdit4(name.c_str(), (float *)&color);
+        ImGui::ColorEdit4(name.c_str(), (float*)&color);
         1;
-    }    
+    }
 };
 
 class fileGui : public baseToGui
@@ -85,33 +89,40 @@ public:
 	std::string filePath;
 	ImGui::FileBrowser fileBrowser;
 	bool needReload = false;
-	fileGui(std::string &&_name, std::string defaultFilePath = "") : baseToGui(_name), filePath(defaultFilePath) {
-		fileBrowser.SetTitle(_name);
-		fileBrowser.SetPwd(pathLoader::cwd);
-	};
-	void toGUi()
-	{
-		ImGui::Text(("model path: " + filePath).c_str());
-		if (ImGui::Button("file browser")) fileBrowser.Open();
-		fileBrowser.Display();
-		if (fileBrowser.HasSelected())
-		{
-			if (filePath.compare(fileBrowser.GetSelected().string())) {
-				filePath = fileBrowser.GetSelected().string();
-				needReload = true;
-			}
-			fileBrowser.ClearSelected();
-		}
-	}
+    fileGui(std::string&& _name, std::string defaultFilePath = "") : baseToGui(_name), filePath(defaultFilePath) {
+        fileBrowser.SetTitle(_name);
+        fileBrowser.SetPwd(pathLoader::cwd);
+    }
+    void toGUi()
+    {
+        ImGui::Text((name + " path: " + filePath).c_str());
+        if (ImGui::Button((name + "file browser").c_str())) 
+            fileBrowser.Open();
+        ImGui::SameLine(300);
+        if (ImGui::Button("clear")) {
+            filePath = "";
+            needReload = true;
+        }
+        fileBrowser.Display();
+        if (fileBrowser.HasSelected())
+        {
+            if (filePath.compare(fileBrowser.GetSelected().string())) {
+                filePath = fileBrowser.GetSelected().string();
+                needReload = true;
+            }
+            fileBrowser.ClearSelected();
+        }
+    }
 };
 
 namespace RenderOption {
 
+    inline boolToGui debugDraw("debug");
     // using RenderPointer = std::shared_ptr<baseToGui>;
     // select a polygon rasterization mode
-    inline enumToGui polygonMode("polygonMode", 
-    std::vector<std::string>{"GL_POINT", "GL_LINE", "GL_FILL"}, 
-    std::vector<size_t>{GL_POINT, GL_LINE, GL_FILL}, 2);
+    inline enumToGui polygonMode("polygonMode",
+        std::vector<std::string>{"GL_POINT", "GL_LINE", "GL_FILL"},
+        std::vector<size_t>{GL_POINT, GL_LINE, GL_FILL}, 2);
 
     inline boolToGui drawCubeMap("drawCubemap", false);
 
@@ -135,60 +146,76 @@ namespace RenderOption {
     std::vector<size_t>{GL_BACK, GL_FRONT, GL_FRONT_AND_BACK}, 0);
 
 	// model file
-	inline fileGui modelFile("select model file", DefaultWorkFlow::MODEL_PATH);
+	// inline fileGui modelFile("select model file", DefaultWorkFlow::MODEL_PATH);
 
 	// MSAA enbale
 	inline boolToGui enableMSAA("MSAA", true);
-    inline void handleRenderOption()
+
+    inline enumToGui gammaCorrection("gammaCorretion", std::vector<std::string>{"none(1)", "2.2", "4"}, std::vector<float>{1.0, 2.2, 4.0});
+    inline void preRenderOption()
     {
         glPolygonMode(GL_FRONT_AND_BACK, polygonMode.options[polygonMode.selected_index]);
-	    glClearColor(clearColor.color.x, clearColor.color.y, clearColor.color.z, clearColor.color.w);
+        glClearColor(clearColor.color.x, clearColor.color.y, clearColor.color.z, clearColor.color.w);
 
         depthTest.value ? glEnable(GL_DEPTH_TEST) : glDisable(GL_DEPTH_TEST);
         glDepthMask(depthMask.value);
-	    glDepthFunc(depthFunc.options[depthFunc.selected_index]);
+        glDepthFunc(depthFunc.options[depthFunc.selected_index]);
 
         cullFace.value ? glEnable(GL_CULL_FACE) : glDisable(GL_CULL_FACE);
         glCullFace(cullFaceFunc.options[cullFaceFunc.selected_index]);
-        
-	    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+
+    };
+    inline void fboRenderOption()
+    {
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        glDisable(GL_CULL_FACE);
+        glDisable(GL_DEPTH_TEST);
+        glClearColor(0.45f, 0.55f, 0.60f, 1.00f);
+        glClear(GL_COLOR_BUFFER_BIT);
+    };
+    inline void postRenderOption()
+    {
 
     };
 };
 
 
 
-auto hookfunction(std::shared_ptr<Shader> shader, std::string name)
+inline auto hookfunction(std::shared_ptr<Shader> shader, std::string name)
 {
-    return [=](auto &&arg) {
+    return [=](auto&& arg) {
         using T = std::decay_t<decltype(arg)>;
-        if constexpr(std::is_same_v<T, int>)
+        if constexpr (std::is_same_v<T, int>)
         {
             int _arg = arg;
             ImGui::InputInt(name.c_str(), &_arg);
             shader->updateUniform(name, _arg);
         }
-        else if constexpr(std::is_same_v<T, size_t>)
+        else if constexpr (std::is_same_v<T, size_t>)
         {
             int _arg = arg;
             ImGui::InputInt(name.c_str(), &_arg);
             shader->updateUniform(name, _arg);
         }
-        else if constexpr(std::is_same_v<T, float>)
+        else if constexpr (std::is_same_v<T, float>)
         {
             float _arg = arg;
             ImGui::InputFloat(name.c_str(), &_arg);
             shader->updateUniform(name, _arg);
         }
-        else if constexpr(std::is_same_v<T, glm::vec3>)
+        else if constexpr (std::is_same_v<T, glm::vec3>)
         {
             glm::vec3 _arg = arg;
-            ImGui::InputFloat3(name.c_str(), (float *)&_arg);
+            ImGui::InputFloat3(name.c_str(), (float*)&_arg);
             shader->updateUniform(name, _arg);
         }
         else
         {
-            
+
         }
     };
 }
+

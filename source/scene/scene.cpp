@@ -35,21 +35,21 @@ Scene::Scene(size_t screenWidth, size_t screenHeight)
 		 * add default cube
 		 * using default cubemap model, texture ,shader
 		 * */
-		cubeModel = std::make_shared<Model>(Cubemap::MODEL_PATH);
-		cubeTexture = load_cubemap(Cubemap::faces);
 		// shader() arg 1 should be moved
 		cubemapShader = std::make_shared<Shader>(Shader(Cubemap::VERT_PATH, Cubemap::FRAG_PATH));
-
-		userModel = std::make_shared<Model>(DefaultWorkFlow::MODEL_PATH);
 		// shader() arg 1 should be moved
 		userShader = std::make_shared<Shader>(Shader(DefaultWorkFlow::VERT_PATH, DefaultWorkFlow::FRAG_PATH));
-		fboShader = std::make_shared<Shader>(Shader("./shader/postprocess/fbo.vert", "./shader/postprocess/fbo.frag"));
+		lightShader = std::make_shared<Shader>(Shader("shader/tool/light.vert", "shader/tool/light.frag"));
+		fboShader = std::make_shared<Shader>(Shader("shader/postprocess/fbo.vert", "shader/postprocess/fbo.frag"));
+		debugShader = std::make_shared<Shader>(Shader("shader/tool/debug.vert", "shader/tool/debug.frag", "shader/tool/debug.geom"));
 	}
 	//
-	addLight(std::make_shared<DirectLight>(DirectLight()));
+	addLight(std::make_shared<PointLight>(PointLight(0)));
+	//addLight(std::make_shared<DirectLight>(DirectLight(1)));
 	mainCamera = Camera(screenWidth, screenHeight);
 	fbo = std::shared_ptr<FBO>(new FBO(screenWidth, screenHeight));
-	
+	cube = std::shared_ptr<CubeModel>(new CubeModel());
+	ball = std::shared_ptr<BallModel>(new BallModel());
 	lastX = screenWidth / 2;
 	lastY = screenHeight / 2;
 }
@@ -76,15 +76,7 @@ void Scene::framebuffer_size_callback(GLFWwindow* window, int width, int height)
 	// Scene::screenWidth = width;
 	// Scene::screenHeight = height;
 }
-//void Scene::mouse_button_callback(GLFWwindow * window, int button, int action, int mods)
-//{
-//	if (button == GLFW_MOUSE_BUTTON_LEFT)
-//	{
-//		if(action == GLFW_PRESS) mouse_left = true;
-//		else mouse_left = false;
-//		lastMouseKeyState = action;
-//	}
-//}
+
 void Scene::keyboard_process()
 {
 
@@ -103,44 +95,21 @@ void Scene::keyboard_process()
 		lastModelMat = modelMat;
 	}
 	lastMouseKeyState = mouse_left;
-	// FPS camera style
-	//if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-	//	mainCamera.ProcessKeyboard(FORWARD, deltaTime);
-	//if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-	//	mainCamera.ProcessKeyboard(BACKWARD, deltaTime);
-	//if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-	//	mainCamera.ProcessKeyboard(LEFT, deltaTime);
-	//if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-	//	mainCamera.ProcessKeyboard(RIGHT, deltaTime);
 }
 void Scene::mouse_callback(GLFWwindow *window, double xpos, double ypos)
 {
 	// rotate model while mouse_ledt button is pressed
+	if (displayUI) return;
 	if (mouse_left)
 	{
 		modelMat = glm::rotate(lastModelMat, glm::radians(float(xpos - lastX) / 10), glm::vec3(0.0f, 1.0f, 0.0f));
 		modelMat = glm::rotate(modelMat, glm::radians(float(ypos - lastY) / 10), glm::vec3(1.0f, 0.0f, 0.0f));
-	}
-
-	// fps camera style
-	//if (firstMouse)
-	//{
-	//	lastX = xpos;
-	//	lastY = ypos;
-	//	firstMouse = false;
-	//}
-
-	//float xoffset = xpos - lastX;
-	//float yoffset = lastY - ypos; // reversed since y-coordinates go from bottom to top
-
-	//lastX = xpos;
-	//lastY = ypos;
-
-	//mainCamera.ProcessMouseMovement(xoffset, yoffset);	
+	}	
 }
 
 void Scene::mouse_ScrollCallback(GLFWwindow * window, double xoffset, double yoffset)
 {
+	if (displayUI) return;
 	auto scale_para = 1 + (yoffset / 10);
 	modelMat = glm::scale(modelMat, glm::vec3(scale_para));
 }
@@ -215,30 +184,38 @@ void Scene::drawImGui()
 		{
 			if (ImGui::BeginTabItem("shader"))
 			{
+				if (ImGui::TreeNode("light")) {
+					for (auto light : lights)
+					{
+						light->drawGui();
+					}
+					ImGui::TreePop();
+				}
 				if(ImGui::TreeNode("user shader")) {
-					for(auto &j : userShader->uniforms.members) {
-						std::visit(hookfunction(userShader, j.first), j.second);
+					for(auto [name, value] : userShader->uniforms.members) {
+						std::visit(hookfunction(userShader, name), value);
 					}
 					ImGui::TreePop();				
 				}
 				if(ImGui::TreeNode("fbo shader")) {
-					for(auto &j : fboShader->uniforms.members) {
-						std::visit(hookfunction(fboShader, j.first), j.second);
+					for(auto [name, value] : fboShader->uniforms.members) {
+						std::visit(hookfunction(fboShader, name), value);
 					}
 					ImGui::TreePop();				
 				}
 				ImGui::EndTabItem();
 			}
-			if (ImGui::BeginTabItem("model"))
+			if (ImGui::BeginTabItem("material"))
 			{
-				ImGui::Text("user model");
-				ImGui::Text("%d meshes, %d vertices, %d faces, %d textures", userModel->mesh_num, userModel->vertices_num, userModel->face_num, userModel->texture_num);
-				RenderOption::modelFile.toGUi();
+				ImGui::Text("user shader");
+				ball->material->drawGUi();
 				ImGui::EndTabItem();
 			}
 			if (ImGui::BeginTabItem("render"))
 			{
 				ImGui::Text("Render options");
+				RenderOption::debugDraw.toGUi();
+
 				RenderOption::polygonMode.toGui();
 				RenderOption::drawCubeMap.toGUi();
 
@@ -255,6 +232,8 @@ void Scene::drawImGui()
 				RenderOption::enableMSAA.toGUi();
 				RenderOption::enableMSAA.value != fbo->enableMSAA ? fbo->switchMSAA() : 1;
 
+				RenderOption::gammaCorrection.toGui();
+				fbo->gamma = RenderOption::gammaCorrection.options[RenderOption::gammaCorrection.selected_index];
 				ImGui::EndTabItem();
 			}
 			ImGui::EndTabBar();
@@ -281,10 +260,6 @@ void Scene::drawImGui()
 }
 
 
-void Scene::updateModel(std::string path)
-{
-	userModel = std::make_shared<Model>(path);
-}
 
 void Scene::addLight(std::shared_ptr<Light> light)
 {
@@ -292,15 +267,8 @@ void Scene::addLight(std::shared_ptr<Light> light)
 }
 
 
-std::shared_ptr<Model> Scene::getModel()
-{
-	return userModel;
-}
-
-
 void Scene::draw()
 {
-
 
 	float currentFrame = glfwGetTime();
 	deltaTime = currentFrame - lastFrame;
@@ -311,25 +279,33 @@ void Scene::draw()
 
 
 	glBindFramebuffer(GL_FRAMEBUFFER, fbo->id);
-	RenderOption::handleRenderOption();
-	if (RenderOption::modelFile.needReload) {
-		updateModel(RenderOption::modelFile.filePath);
-		RenderOption::modelFile.needReload = false;
-	}
+	RenderOption::preRenderOption();
+
 	userShader->use();
 	userShader->updateUniform("lightNum", (int)lights.size());
-	for (int i = 0; i < lights.size(); i++) lights[i]->setLightUniform(userShader, i);
-	userShader->updateUniform("material.shininess", shininess);
+	for (auto light : lights) light->setLightUniform(userShader);
+	//userShader->updateUniform("material.shininess", shininess);
 	userShader->updateUniform("viewPos", mainCamera.Position);
-	userModel->Draw(userShader, mainCamera, modelMat, "");
+	ball->draw(userShader, mainCamera, modelMat);
+	
+	for (auto light : lights) light->drawModel(lightShader, mainCamera.GetViewMatrix(), mainCamera.GetProjectionMatrix());
+	// debug
+	if (RenderOption::debugDraw.value) {
+		debugShader->use();
+		debugShader->updateUniform("projection", mainCamera.GetProjectionMatrix());
+		debugShader->updateUniform("view", mainCamera.GetViewMatrix());
+		debugShader->updateUniform("model", modelMat);
+		debugShader->setAllUniforms();
+		glBindVertexArray(ball->VAO);
+		glDrawElements(GL_TRIANGLES, ball->index_num, GL_UNSIGNED_INT, 0);
+		glBindVertexArray(0);
+	}
+
+
 
 	if(RenderOption::drawCubeMap.value) {
 		glCullFace(GL_FRONT);
-		glActiveTexture(GL_TEXTURE0);
-		cubemapShader->use();
-		cubemapShader->updateUniform("skybox", 0);
-		glBindTexture(GL_TEXTURE_CUBE_MAP, cubeTexture);
-		cubeModel->Draw(cubemapShader, mainCamera, modelMat, "cubemap");
+		cube->draw(cubemapShader, mainCamera);
 		glCullFace(GL_BACK);
 	}
 		
@@ -341,15 +317,11 @@ void Scene::draw()
 	//glStencilMask(0xFF);
 	//glStencilFunc(GL_ALWAYS, 1, 0xFF);
 
-	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	glDisable(GL_CULL_FACE);
-	glDisable(GL_DEPTH_TEST);
-	glClearColor(0.45f, 0.55f, 0.60f, 1.00f);
-	glClear(GL_COLOR_BUFFER_BIT);
+	RenderOption::fboRenderOption();
 	fbo->draw(fboShader);
 	drawImGui();
 
+	RenderOption::postRenderOption();
 	// glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
 	// -------------------------------------------------------------------------------
 	glfwSwapBuffers(window);

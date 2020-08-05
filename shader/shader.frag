@@ -6,12 +6,12 @@ in vec3 Normal;
 
 uniform vec3 viewPos;
 
-#include "lightModel/material.header.frag"
-#include "lightModel/phong.header.frag"
+#include "lightModel/pbr/material_header.frag"
+#include "lightModel/pbr/light_header.frag"
 
 void main()
 {
-	FragColor = vec4(calLight(material), 1.0);
+	FragColor = vec4(calLight(material, TexCoord, Normal, FragPos, viewPos), 1.0);
 //    float depth = LinearizeDepth(gl_FragCoord.z) / far; // far
 //    FragColor = vec4(vec3(depth), 1.0);
 } 

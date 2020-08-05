@@ -114,6 +114,7 @@ void FBO::draw(std::shared_ptr<Shader> shader)
 	shader->updateUniform("time", float(glfwGetTime()));
 	shader->updateUniform("width", (int)width);
 	shader->updateUniform("height", (int)height);
+	shader->updateUniform("gamma", gamma);
 	shader->setAllUniforms();
 	glBindVertexArray(quadVAO);
 	glDrawArrays(GL_TRIANGLES, 0, 6);

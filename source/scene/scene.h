@@ -6,10 +6,12 @@
 
 #include "console.h"
 #include "camera.h"
-#include "model.h"
+#include "material.h"
 #include "light.h"
 #include "tool/path.h"
 #include "mgl/fbo.h"
+#include "ball.h"
+#include "cube.h"
 
 #define SCREEN_WIDTH 1200
 #define SCREEN_HEIGHT 900
@@ -20,11 +22,10 @@ private:
 	size_t screenHeight;
 
 	// used by user / cubemap
-	std::shared_ptr<Model> userModel, cubeModel;
-	GLuint cubeTexture;
-	std::shared_ptr<Shader> userShader, cubemapShader, fboShader;
+	std::shared_ptr<BallModel> ball;
+	std::shared_ptr<CubeModel> cube;
+	std::shared_ptr<Shader> userShader, cubemapShader, fboShader, debugShader, lightShader;
 	std::vector<std::shared_ptr<Light>> lights;
-
 	static glm::mat4 modelMat;
 
 	// input helper variable
@@ -63,21 +64,13 @@ public:
 	static Camera mainCamera;
 	GLFWwindow* window;
 	static Scene* getInstance(size_t screenWidth = SCREEN_WIDTH, size_t screenHeight = SCREEN_HEIGHT);
-	/**
-	 * @brief change user model
-	 * @param path model absolute path
-	 * */
-	void updateModel(std::string path);
+
 	void addLight(std::shared_ptr<Light> light);
 	/**
 	 * @brief change user shader
 	 * @param path shader absolute path
 	 * */
 	void updateShader(std::string &&path);
-	/**
-	 * @return a shared pointer point to user model
-	 * */
-    std::shared_ptr<Model> getModel();
 	void draw();
 
 	/**
