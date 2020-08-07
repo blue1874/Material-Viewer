@@ -2,6 +2,7 @@
 
 Material::Material()
 {
+	albedoFile.needReload = normalFile.needReload = metalicFile.needReload = roughnessFile.needReload = AOFile.needReload = true;
 	iter[std::shared_ptr<GLuint>(&albedoMap)] = std::make_shared<fileGui>(albedoFile);
 	//iter[std::make_shared<GLuint>(diffuseMap)] = std::make_shared<fileGui>(diffuseFile);
 	//iter[std::make_shared<GLuint>(specularMap)] = std::make_shared<fileGui>(specularFile);
@@ -9,6 +10,7 @@ Material::Material()
 	iter[std::shared_ptr<GLuint>(&metalicMap)] = std::make_shared<fileGui>(metalicFile);
 	iter[std::shared_ptr<GLuint>(&roughnessMap)] = std::make_shared<fileGui>(roughnessFile);
 	iter[std::shared_ptr<GLuint>(&AOMap)] = std::make_shared<fileGui>(AOFile);
+	
 
 }
 

@@ -1,10 +1,16 @@
-# OpenGL Shader Viewer
+# Material Viewer with OpenGL
 
 ## What it is
-a small application to show shader effect, while you can edit shader (such as code, uniform value) at run-time
+A small app for viewing your material and shader effect, just like any other game engine does.
+
+
+## Why do I use it
+No, you should not, as it's a learning project for my graphic course, which lack of basically strcture design.
 
 ## How to use
-need to complete..
+Using camke and vcpkg to build on Windows. Configure your own vcpkg in camke setting to get third lirbary.
 
 ## Effect
-need to complete..
+Support PBR workflow.
+![]
+You can watch and edit uniforms in your shader at run-time.

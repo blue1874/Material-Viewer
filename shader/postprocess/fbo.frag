@@ -8,10 +8,9 @@ uniform int height;
 
 uniform sampler2D fbo;
 uniform sampler2DMS MSAATex;
+uniform int sampleNum;
 
-uniform bool enableMSAA;
 uniform float time;
-
 uniform float splitIntensity;
 
 uniform float gamma;
@@ -24,38 +23,41 @@ float randomNoise(float x, float y)
 vec4 sampleInMSAATex(vec2 texCoord)
 {
 	vec4 ans = vec4(0, 0, 0, 0);
-	for(int i = 0; i < 4; i++)
+	for(int i = 0; i < sampleNum; i++)
 	{
 		ans += texelFetch(MSAATex, ivec2(texCoord.x * width, texCoord.y * height), i);
 	}
-	return ans / 4.0;
+	return ans / float(sampleNum);
 }
 
-vec4 RGB_Split()
+vec3 RGB_Split()
 {
     float uvOffset = splitIntensity * randomNoise(time, 2);
-	if(!enableMSAA) {
+	if(sampleNum == 1) {
 		float r = texture(fbo, vec2(TexCoords.x + uvOffset, TexCoords.y)).r;
 		float g = texture(fbo, TexCoords).g;
 		float b = texture(fbo, vec2(TexCoords.x - uvOffset, TexCoords.y)).b;		
-		return vec4(r, g, b, 1);
+		return vec3(r, g, b);
 	}
 	else {
 		float R, G, B;
 		R = sampleInMSAATex(vec2(TexCoords.x + uvOffset, TexCoords.y)).r;
 		G = sampleInMSAATex(TexCoords).g;
 		B = sampleInMSAATex(vec2(TexCoords.x - uvOffset, TexCoords.y)).b;
-		return vec4(R, G, B, 1);
+		return vec3(R, G, B);
 	}
 }
 
-vec4 gammaCorrection(vec4 color)
+vec3 gammaCorrection(vec3 color)
 {
-	return vec4(pow(color.rgb, vec3(1.0 / gamma)), 1.0);	
+	return pow(color, vec3(1.0 / gamma));	
 }
 
 void main()
 { 
     // vec4 srcColor = texture(fbo, TexCoords);
-    FragColor = gammaCorrection(RGB_Split());
+    vec3 result = RGB_Split();
+//	result = result / (result + vec3(1.0));
+//	result = pow(result, vec3(1.0 / gamma));
+	FragColor = vec4(result, 1.0);
 }

@@ -9,7 +9,7 @@ double Scene::lastY = SCREEN_WIDTH / 2;
 float Scene::lastFrame = 0.0f;
 float Scene::deltaTime = 0.0f;;
 GLuint Scene::lastKeyState = GLFW_RELEASE;
-glm::mat4 Scene::modelMat = glm::scale(glm::mat4(1.0f), glm::vec3(0.1f));
+glm::mat4 Scene::modelMat = glm::scale(glm::mat4(1.0f), glm::vec3(0.5f));
 bool Scene::mouse_left = false;
 GLuint Scene::lastMouseKeyState = GLFW_RELEASE;
 glm::mat4 Scene::lastModelMat = modelMat;
@@ -47,7 +47,9 @@ Scene::Scene(size_t screenWidth, size_t screenHeight)
 	addLight(std::make_shared<PointLight>(PointLight(0)));
 	//addLight(std::make_shared<DirectLight>(DirectLight(1)));
 	mainCamera = Camera(screenWidth, screenHeight);
-	fbo = std::shared_ptr<FBO>(new FBO(screenWidth, screenHeight));
+	fbo = std::shared_ptr<ppFBO>(new ppFBO(screenWidth, screenHeight, fboShader));
+	cubeMapFbo = std::shared_ptr<cubeMapFBO>(new cubeMapFBO(screenWidth, screenHeight, std::make_shared<Shader>(Shader("shader/lightModel/pbr/IBL_diffuse.vert", "shader/lightModel/pbr/IBL_diffuse.frag"))));
+	cubeMapFbo->draw();
 	cube = std::shared_ptr<CubeModel>(new CubeModel());
 	ball = std::shared_ptr<BallModel>(new BallModel());
 	lastX = screenWidth / 2;
@@ -68,7 +70,7 @@ void Scene::framebuffer_size_callback(GLFWwindow* window, int width, int height)
 	// height will be significantly larger than specified on retina displays.
 	glViewport(0, 0, width, height);
 	if(instance) {
-		instance->fbo = std::shared_ptr<FBO>(new FBO(width, height));
+		//instance->fbo = std::shared_ptr<ppFBO>(new ppFBO(width, height));
 		instance->mainCamera.screenWidth = instance->screenWidth = width;
 		instance->mainCamera.screenHeight = instance->screenHeight = height;
 	}
@@ -229,11 +231,7 @@ void Scene::drawImGui()
 				RenderOption::cullFace.toGui();
 				RenderOption::cullFaceFunc.toGui();
 
-				RenderOption::enableMSAA.toGUi();
-				RenderOption::enableMSAA.value != fbo->enableMSAA ? fbo->switchMSAA() : 1;
-
-				RenderOption::gammaCorrection.toGui();
-				fbo->gamma = RenderOption::gammaCorrection.options[RenderOption::gammaCorrection.selected_index];
+				fbo->drawGui();
 				ImGui::EndTabItem();
 			}
 			ImGui::EndTabBar();
@@ -286,6 +284,9 @@ void Scene::draw()
 	for (auto light : lights) light->setLightUniform(userShader);
 	//userShader->updateUniform("material.shininess", shininess);
 	userShader->updateUniform("viewPos", mainCamera.Position);
+	glActiveTexture(GL_TEXTURE0 + 5);
+	glBindTexture(GL_TEXTURE_2D, cubeMapFbo->IBLmap);
+	userShader->updateUniform("IBL", 5);
 	ball->draw(userShader, mainCamera, modelMat);
 	
 	for (auto light : lights) light->drawModel(lightShader, mainCamera.GetViewMatrix(), mainCamera.GetProjectionMatrix());
@@ -304,9 +305,9 @@ void Scene::draw()
 
 
 	if(RenderOption::drawCubeMap.value) {
-		glCullFace(GL_FRONT);
+		// glCullFace(GL_FRONT);
 		cube->draw(cubemapShader, mainCamera);
-		glCullFace(GL_BACK);
+		// glCullFace(GL_BACK);
 	}
 		
 
@@ -318,7 +319,7 @@ void Scene::draw()
 	//glStencilFunc(GL_ALWAYS, 1, 0xFF);
 
 	RenderOption::fboRenderOption();
-	fbo->draw(fboShader);
+	fbo->draw();
 	drawImGui();
 
 	RenderOption::postRenderOption();

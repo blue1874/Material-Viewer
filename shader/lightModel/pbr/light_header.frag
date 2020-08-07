@@ -4,7 +4,7 @@ const int point = 0;
 const int direct = 1;
 const int flash = 2;
 
-float Pi = 3.14159265359;
+float PI = 3.14159265359;
 
 struct Light {
 	int type;
@@ -39,14 +39,35 @@ float roughness = roughnessSample == 0.0 ? material.roughness : roughnessSample;
 float AOSample = vec3(texture(material.AOMap, TexCoord)).r;
 float AO = AOSample == 0.0 ? material.AO : AOSample;
 
+vec3 getNormalFromMap()
+{
+	vec3 sampleTex = vec3(texture(material.normalMap, TexCoord));
+	if(sampleTex == vec3(0, 0, 0)) return sampleTex;
+    vec3 tangentNormal = sampleTex * 2.0 - 1.0;
+
+    vec3 Q1  = dFdx(FragPos);
+    vec3 Q2  = dFdy(FragPos);
+    vec2 st1 = dFdx(TexCoord);
+    vec2 st2 = dFdy(TexCoord);
+
+    vec3 N   = normalize(Normal);
+    vec3 T  = normalize(Q1*st2.t - Q2*st1.t);
+    vec3 B  = -normalize(cross(N, T));
+    mat3 TBN = mat3(T, B, N);
+
+    return normalize(TBN * tangentNormal);
+}
+
+vec3 normalSample = getNormalFromMap();
+vec3 normal = normalSample == vec3(0, 0, 0) ? normalize(Normal) : normalSample;
 // Normal Distribution Function
 // Trowbridge-Reitz GGX
-float NDF(float roughness, vec3 normal, vec3 halfVector)
+float NDF(float roughness, vec3 halfVector)
 {
 	float r2 = roughness * roughness;
 	float theta = max(dot(normal, halfVector), 0.0);
 	float tmp = theta * theta * (r2 - 1) + 1;
-	float n = Pi * tmp * tmp;
+	float n = PI * tmp * tmp;
 	return r2 / n;
 }
 
@@ -60,7 +81,7 @@ float GeometrySchlickGGX(float NV, float roughness)
 	return NV / (NV * (1.0 - k) + k);
 }
 
-float GeometrySmith(vec3 normal, vec3 viewDir, vec3 lightDir, float roughness)
+float GeometrySmith(vec3 viewDir, vec3 lightDir, float roughness)
 {
 	float NV = max(dot(normal, viewDir), 0.0);
 	float NL = max(dot(normal, lightDir), 0.0);
@@ -73,8 +94,9 @@ vec3 FSchlick(vec3 halfVector, vec3 viewDir, vec3 F0)
 	float theta = max(dot(halfVector, viewDir), 0.0);
 	return F0 + (1 - F0) * pow(1 - theta, 5);
 }
+uniform samplerCube IBL;
 
-vec3 pbrLight(Material material, vec2 TexCoord, vec3 normal, vec3 lightDir, vec3 viewDir)
+vec3 pbrLight(vec3 lightDir, vec3 viewDir)
 {
 
 	vec3 halfVector = normalize(viewDir + lightDir);
@@ -86,19 +108,19 @@ vec3 pbrLight(Material material, vec2 TexCoord, vec3 normal, vec3 lightDir, vec3
 	vec3 ka = vec3(1.0) - ks;
 	// ka *= (1.0 - metalic);
 	// diffuse
-	vec3 diffuse = ka * albedo / Pi;
+	// vec3 diffuse = ka * albedo / PI;
+	vec3 diffuse = ka * albedo * vec3(texture(IBL, normal)) / PI;
 
 	// specular
 
-	vec3 NGF = NDF(roughness, normal, halfVector) * GeometrySmith(normal, viewDir, lightDir, roughness) * ks;
+	vec3 NGF = NDF(roughness, halfVector) * GeometrySmith(viewDir, lightDir, roughness) * ks;
 	vec3 specular = NGF / (4.0 * max(dot(normal, viewDir), 0.0) * max(dot(normal, lightDir), 0.0) + 0.001);
 	return diffuse + specular;
 }
-vec3 calLight(Material material, vec2 TexCoord, vec3 Normal, vec3 FragPos, vec3 viewPos)
+
+
+vec3 calLight()
 {
-	vec3 normalSample = vec3(texture(material.normalMap, TexCoord));
-	vec3 normal = normalSample == vec3(0, 0, 0) ? Normal : normalSample;
-	normal = normalize(normal);
 	vec3 result = vec3(0, 0, 0);
 	for(int i = 0; i < lightNum; i++)
 	{
@@ -116,7 +138,7 @@ vec3 calLight(Material material, vec2 TexCoord, vec3 Normal, vec3 FragPos, vec3 
 				vec3 LightIntensity = lights[i].intensity * lights[i].color * attenuation * max(dot(wi, normal), 0.0);
 
 				// ambient
-				result += pbrLight(material, TexCoord, normal, wi, viewDir) * LightIntensity + ambient;
+				result += pbrLight(wi, viewDir) * LightIntensity + ambient;
 			}
 			break;
 		case direct:
@@ -124,7 +146,7 @@ vec3 calLight(Material material, vec2 TexCoord, vec3 Normal, vec3 FragPos, vec3 
 				vec3 wi = lights[i].direction;
 				vec3 LightIntensity = lights[i].intensity * lights[i].color * max(dot(wi, normal), 0.0);
 
-				result += pbrLight(material, TexCoord, normal, wi, viewDir) * LightIntensity + ambient;
+				result += pbrLight(wi, viewDir) * LightIntensity + ambient;
 			}
 			break;
 		case flash:

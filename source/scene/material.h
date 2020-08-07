@@ -27,13 +27,13 @@ public:
 	GLuint roughnessMap;
 	GLuint AOMap;
 
-	fileGui albedoFile = fileGui("albedoFile");
+	fileGui albedoFile = fileGui("albedoFile", DefaultWorkFlow::ALBEDO);
 	//fileGui diffuseFile = fileGui("diffuseFile");
 	//fileGui specularFile = fileGui("specularFile");
-	fileGui normalFile = fileGui("normalFile");
-	fileGui metalicFile = fileGui("metalicFile");
-	fileGui roughnessFile = fileGui("roughnessFile");
-	fileGui AOFile = fileGui("AOFile");
+	fileGui normalFile = fileGui("normalFile", DefaultWorkFlow::NORMAL);
+	fileGui metalicFile = fileGui("metalicFile", DefaultWorkFlow::METALLIC);
+	fileGui roughnessFile = fileGui("roughnessFile", DefaultWorkFlow::ROUGHNESS);
+	fileGui AOFile = fileGui("AOFile", DefaultWorkFlow::AO);
 	std::map<std::shared_ptr<GLuint>, std::shared_ptr<fileGui>> iter;
 	Material();
 	void drawGUi();

@@ -1,6 +1,6 @@
 #include "load_texture.h"
 
-size_t load_texture(size_t internalFormat, std::string path, int warp_type, int min_filter_type, int max_fileter_type)
+size_t load_texture(size_t internalFormat, const std::string &path, int warp_type, int min_filter_type, int max_fileter_type)
 {
 	size_t texture;
 	glGenTextures(1, &texture);
@@ -40,7 +40,7 @@ size_t load_texture(size_t internalFormat, std::string path, int warp_type, int 
 	return texture;
 }
 
-size_t load_cubemap(std::vector<std::string>& faces)
+size_t load_cubemap(const std::vector<std::string>& faces)
 {
 	size_t texture;
 	glGenTextures(1, &texture);

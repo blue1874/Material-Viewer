@@ -29,7 +29,7 @@ public:
 	virtual void drawGui() 
 	{
 		ImGui::ColorEdit3("color", (float*)&color);
-		ImGui::SliderFloat("intensity", &intensity, 0.0f, 1.0f);
+		ImGui::SliderFloat("intensity", &intensity, 0.0f, 100.0f);
 		ImGui::Text(typeid(type).name());
 	};
 	virtual void drawModel(std::shared_ptr<Shader> shader, glm::mat4 viewMat, glm::mat4 projectionMat) {};

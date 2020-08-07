@@ -11,7 +11,7 @@ uniform vec3 viewPos;
 
 void main()
 {
-	FragColor = vec4(calLight(material, TexCoord, Normal, FragPos, viewPos), 1.0);
+	FragColor = vec4(calLight(), 1.0);
 //    float depth = LinearizeDepth(gl_FragCoord.z) / far; // far
 //    FragColor = vec4(vec3(depth), 1.0);
 } 

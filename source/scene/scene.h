@@ -54,7 +54,8 @@ private:
 
 	static Scene* instance;
 
-	std::shared_ptr<FBO> fbo;
+	std::shared_ptr<ppFBO> fbo;
+	std::shared_ptr<cubeMapFBO> cubeMapFbo;
 	//GLuint fbo;
 	Scene(size_t screenWidth, size_t screenHeight);
 	~Scene();

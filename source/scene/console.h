@@ -31,12 +31,16 @@ class enumToGui : public baseToGui
 {
 private:
     std::vector<std::string> optionStr;
+
 public:
     size_t selected_index;
-
+    T selected_value;
     std::vector<T> options;
     enumToGui(std::string&& _name, std::vector<std::string>&& _optionStr, std::vector<T>&& _options, size_t _index = 0) :
-        baseToGui(_name), optionStr(_optionStr), options(_options), selected_index(_index) {}
+        baseToGui(_name), optionStr(_optionStr), options(_options), selected_index(_index)
+    {
+        selected_value = options[selected_index];
+    }
     void toGui()
     {
         if (ImGui::BeginCombo(name.c_str(), optionStr[selected_index].c_str()))
@@ -45,7 +49,10 @@ public:
             {
                 const bool is_selected = (selected_index == n);
                 if (ImGui::Selectable(optionStr[n].c_str(), is_selected))
+                {
+                    selected_value = options[n];
                     selected_index = n;
+                }
 
                 // Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
                 if (is_selected)
@@ -89,7 +96,7 @@ public:
 	std::string filePath;
 	ImGui::FileBrowser fileBrowser;
 	bool needReload = false;
-    fileGui(std::string&& _name, std::string defaultFilePath = "") : baseToGui(_name), filePath(defaultFilePath) {
+    fileGui(std::string&& _name, const std::string &defaultFilePath = "") : baseToGui(_name), filePath(defaultFilePath) {
         fileBrowser.SetTitle(_name);
         fileBrowser.SetPwd(pathLoader::cwd);
     }
@@ -99,7 +106,7 @@ public:
         if (ImGui::Button((name + "file browser").c_str())) 
             fileBrowser.Open();
         ImGui::SameLine(300);
-        if (ImGui::Button("clear")) {
+        if (ImGui::Button((name + "clear").c_str())) {
             filePath = "";
             needReload = true;
         }
@@ -148,21 +155,17 @@ namespace RenderOption {
 	// model file
 	// inline fileGui modelFile("select model file", DefaultWorkFlow::MODEL_PATH);
 
-	// MSAA enbale
-	inline boolToGui enableMSAA("MSAA", true);
-
-    inline enumToGui gammaCorrection("gammaCorretion", std::vector<std::string>{"none(1)", "2.2", "4"}, std::vector<float>{1.0, 2.2, 4.0});
     inline void preRenderOption()
     {
-        glPolygonMode(GL_FRONT_AND_BACK, polygonMode.options[polygonMode.selected_index]);
+        glPolygonMode(GL_FRONT_AND_BACK, polygonMode.selected_value);
         glClearColor(clearColor.color.x, clearColor.color.y, clearColor.color.z, clearColor.color.w);
 
         depthTest.value ? glEnable(GL_DEPTH_TEST) : glDisable(GL_DEPTH_TEST);
         glDepthMask(depthMask.value);
-        glDepthFunc(depthFunc.options[depthFunc.selected_index]);
+        glDepthFunc(depthFunc.selected_value);
 
         cullFace.value ? glEnable(GL_CULL_FACE) : glDisable(GL_CULL_FACE);
-        glCullFace(cullFaceFunc.options[cullFaceFunc.selected_index]);
+        glCullFace(cullFaceFunc.selected_value);
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
