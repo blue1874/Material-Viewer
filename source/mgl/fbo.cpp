@@ -168,6 +168,7 @@ void FBO::draw()
 {
 }
 
+bool cubeMapFBO::first = true;
 cubeMapFBO::cubeMapFBO(size_t _width, size_t _height, std::shared_ptr<Shader> _shader) : FBO(_width, _height, _shader)
 {
 	glBindFramebuffer(GL_FRAMEBUFFER, id);
@@ -183,7 +184,7 @@ cubeMapFBO::cubeMapFBO(size_t _width, size_t _height, std::shared_ptr<Shader> _s
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-	cubemap = load_cubemap(Cubemap::faces);
+	//cubemap = load_cubemap(Cubemap::faces);
 
 	glBindRenderbuffer(GL_RENDERBUFFER, rbo);
 	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, 32, 32);
@@ -198,13 +199,16 @@ cubeMapFBO::cubeMapFBO(size_t _width, size_t _height, std::shared_ptr<Shader> _s
 
 cubeMapFBO::~cubeMapFBO()
 {
-	glDeleteTextures(1, &cubemap);
+	first = true;
+	//glDeleteTextures(1, &cubemap);
 	glDeleteTextures(1, &IBLmap);
 	glDeleteVertexArrays(1, &cubeVAO);
 }
 
 void cubeMapFBO::draw()
 {
+	if (first) first = false;
+	else return;
 	glBindFramebuffer(GL_FRAMEBUFFER, id);
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LEQUAL);
@@ -292,8 +296,13 @@ void cubeMapFBO::draw()
 		glBindVertexArray(cubeVAO);
 		glDrawArrays(GL_TRIANGLES, 0, 36);
 		glBindVertexArray(0);
+
+		glReadBuffer(GL_COLOR_ATTACHMENT0);
+		unsigned char* data = (unsigned char*)malloc(32 * 32 * 3);
+		glReadPixels(0, 0, 32, 32, GL_RGB, GL_UNSIGNED_BYTE, data);
+		save_texture2png(DefaultWorkFlow::CAL_IBL_PATH + std::to_string(i) + ".png", 32, 32, 3, data);
+		free(data);
 	}
 	glDisable(GL_DEPTH_TEST);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
 }

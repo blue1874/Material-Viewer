@@ -3,9 +3,9 @@
 #include <type_traits>
 
 #include "imgui/imgui.h"
-#include "imgui/imfilebrowser.h"
 #include "imgui/imgui_impl_glfw.h"
 #include "imgui/imgui_impl_opengl3.h"
+#include "imgui/imfilebrowser.h"
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -75,6 +75,16 @@ public:
     }
 };
 
+class floatToGui : public baseToGui
+{
+public:
+    float value;
+    floatToGui(std::string&& _name, float defaultValue) : baseToGui(_name), value(defaultValue) {}
+    void toGui()
+    {
+        ImGui::SliderFloat(name.c_str(), &value, 0.0f, 1.0f);
+    }
+};
 class colorToGui : public baseToGui
 {
 private:
@@ -185,6 +195,9 @@ namespace RenderOption {
     };
 };
 
+namespace WindowOption {
+    inline floatToGui opacity("window opacity", 0.5f);
+}
 
 
 inline auto hookfunction(std::shared_ptr<Shader> shader, std::string name)

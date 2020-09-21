@@ -3,13 +3,26 @@
 #include <string>
 #include <variant>
 #include <map>
+#include <unordered_map>
 #include <iostream>
 #include <vector>
 
-enum uniformType {_empty, _int, _float, _bool, _uint, _double, 
-    ivec2, ivec3, ivec4, vec2, vec3, 
-    vec4, dvec2, dvec3, dvec4, 
-    mat2, mat3, mat4};
+#define UNIFORM_TYPE(X) X(empty) X(int) X(float) X(bool) X(uint)  \
+    X(double) X(ivec2) X(ivec3) X(ivec4) X(vec2) X(vec3) X(vec4) \
+    X(dvec2) X(dvec3) X(dvec4) X(mat2) X(mat3) X(mat4)
+#define INT_TYPE(X) X(sampler1D) X(sampler2D) X(sampler2DMS) X(samplerCube)
+
+//create uniform enum
+#define X(a) _##a,
+enum uniformType { UNIFORM_TYPE(X) };
+#undef X
+
+//create map for string to enum
+#define X(a) std::pair<std::string, size_t>(#a, _##a),
+#define XX(a) std::pair<std::string, size_t>(#a, _int),
+inline std::unordered_map<std::string, size_t> typeIndex = { UNIFORM_TYPE(X) INT_TYPE(XX)};
+#undef X
+    
 /** 
  * unifromType variant
  * */
@@ -18,31 +31,6 @@ typedef std::variant<std::monostate, int, float, bool, size_t, double,
     glm::vec4, glm::dvec2, glm::dvec3, glm::dvec4, glm::mat2, 
     glm::mat3, glm::mat4> data; 
 
-// string to type reflection
-inline std::map<std::string, size_t> typeIndex = {
-    std::pair<std::string, size_t>("int", _int),
-    std::pair<std::string, size_t>("float", _float),
-    std::pair<std::string, size_t>("bool", _bool),
-    std::pair<std::string, size_t>("uint", _uint),
-    std::pair<std::string, size_t>("double", _double),
-    std::pair<std::string, size_t>("ivec2", ivec2),
-    std::pair<std::string, size_t>("ivec3", ivec3),
-    std::pair<std::string, size_t>("ivec4", ivec4),
-    std::pair<std::string, size_t>("vec2", vec2),
-    std::pair<std::string, size_t>("vec3", vec3),
-    std::pair<std::string, size_t>("vec4", vec4),
-    std::pair<std::string, size_t>("dvec2", dvec2),
-    std::pair<std::string, size_t>("dvec3", dvec3),
-    std::pair<std::string, size_t>("dvec4", dvec4),
-    std::pair<std::string, size_t>("mat2", mat2),
-    std::pair<std::string, size_t>("mat3", mat3),
-    std::pair<std::string, size_t>("mat4", mat4),
-    std::pair<std::string, size_t>("sampler1D", _int),
-    std::pair<std::string, size_t>("sampler2D", _int),
-	std::pair<std::string, size_t>("sampler2DMS", _int),
-    std::pair<std::string, size_t>("samplerCube", _int),
-
-    };
     
 template <class Variant, std::size_t I = 0>
 Variant variant_from_index(std::size_t index) {

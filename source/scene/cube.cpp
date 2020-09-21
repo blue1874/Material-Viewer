@@ -30,7 +30,6 @@ CubeModel::CubeModel(glm::vec3 offset)
 	};
 	index_num = index.size();
 
-	texture = load_cubemap(Cubemap::faces);
 	GLuint VBO, IBO;
 	glGenVertexArrays(1, &VAO);
 	glGenBuffers(1, &VBO);
@@ -67,6 +66,11 @@ void CubeModel::draw()
 
 void CubeModel::draw(std::shared_ptr<Shader> shader, Camera& camera)
 {
+	static bool first = true;
+	if (first) {
+		texture = load_cubemap(Cubemap::faces);
+		first = false;
+	}
 	shader->use();
 	shader->updateUniform("skybox", 0);
 	glActiveTexture(GL_TEXTURE0);

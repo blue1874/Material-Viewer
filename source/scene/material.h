@@ -8,7 +8,7 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include <map>
-#include "io/load_texture.h"
+#include "io/textureIO.h"
 #include "console.h"
 
 class Material

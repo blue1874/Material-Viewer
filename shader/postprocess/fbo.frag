@@ -14,11 +14,7 @@ uniform float time;
 uniform float splitIntensity;
 
 uniform float gamma;
-
-float randomNoise(float x, float y)
-{
-    return fract(sin(dot(vec2(x, y), vec2(12.9898, 78.233))) * 43758.5453);
-}
+#include "math/noise/noise.frag"
 
 vec4 sampleInMSAATex(vec2 texCoord)
 {
@@ -32,7 +28,7 @@ vec4 sampleInMSAATex(vec2 texCoord)
 
 vec3 RGB_Split()
 {
-    float uvOffset = splitIntensity * randomNoise(time, 2);
+    float uvOffset = splitIntensity * randomNoise(vec2(time, 2));
 	if(sampleNum == 1) {
 		float r = texture(fbo, vec2(TexCoords.x + uvOffset, TexCoords.y)).r;
 		float g = texture(fbo, TexCoords).g;
@@ -55,7 +51,7 @@ vec3 gammaCorrection(vec3 color)
 
 void main()
 { 
-    // vec4 srcColor = texture(fbo, TexCoords);
+    // vec4 result = texture(fbo, TexCoords);
     vec3 result = RGB_Split();
 //	result = result / (result + vec3(1.0));
 //	result = pow(result, vec3(1.0 / gamma));

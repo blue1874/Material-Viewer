@@ -43,4 +43,6 @@ namespace DefaultWorkFlow {
 
 	inline const std::string FRAG_PATH("shader/shader.frag");
 	inline const std::string VERT_PATH("shader/shader.vert");
+
+	inline const std::string CAL_IBL_PATH("resources/out/IBL/");
 }

@@ -1,0 +1,3 @@
+/mnt/d/blue/Coding/opengl-learn/mgl/build-linux/WSL-GCC-Debug/CMakeFiles/rebuild_cache.dir
+/mnt/d/blue/Coding/opengl-learn/mgl/build-linux/WSL-GCC-Debug/CMakeFiles/opengl.dir
+/mnt/d/blue/Coding/opengl-learn/mgl/build-linux/WSL-GCC-Debug/CMakeFiles/edit_cache.dir

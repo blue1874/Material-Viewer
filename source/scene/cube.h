@@ -13,7 +13,7 @@
 #include "mgl/shader.h"
 #include "scene/camera.h"
 #include "tool/path.h"
-#include "io/load_texture.h"
+#include "io/textureIO.h"
 
 class CubeModel
 {

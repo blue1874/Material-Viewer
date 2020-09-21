@@ -1,7 +1,7 @@
 #pragma once
 
 #include <string>
-#include <io/load_texture.h>
+#include <io/textureIO.h>
 
 #define MAX_TEXTURE_NUM 16
 enum TextureType { normal, albedo, diffuse, specular, roughness, metalic, AO };

@@ -13,7 +13,7 @@
 #include "uniform.h"
 #include "shaderTextProcess.h"
 
-const std::string includeDir("shader/");
+inline const std::string includeDir("shader/");
 class Shader
 {
 public:
@@ -40,7 +40,7 @@ private:
 
 	/**
 	 * overload setUniform function
-	 * not use template since no same opengl API can be used 
+	 * do not use template since no same opengl API can be used 
 	 * */
 	inline void setUniform(const std::string & name, unsigned int value) const { glUniform1ui(glGetUniformLocation(ID, name.c_str()), (unsigned int)value); }
 	inline void setUniform(const std::string & name, bool value) const { glUniform1i(glGetUniformLocation(ID, name.c_str()), (int)value); }

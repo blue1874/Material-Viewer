@@ -6,7 +6,7 @@
 
 #include "shader.h"
 #include "tool/path.h"
-#include "io/load_texture.h"
+#include "io/textureIO.h"
 #include "scene/console.h"
 
 class FBO
@@ -59,8 +59,7 @@ public:
 	GLuint IBLmap;
 	GLuint cubeVAO = 0;
 	glm::mat4 captureProjection = glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, 10.0f);
-	glm::mat4 captureViews[6] =
-	{
+	glm::mat4 captureViews[6] = {
 		glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f,  0.0f,  0.0f), glm::vec3(0.0f, -1.0f,  0.0f)),
 		glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(-1.0f,  0.0f,  0.0f), glm::vec3(0.0f, -1.0f,  0.0f)),
 		glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f,  1.0f,  0.0f), glm::vec3(0.0f,  0.0f,  1.0f)),
@@ -71,4 +70,7 @@ public:
 	cubeMapFBO(size_t _width, size_t _height, std::shared_ptr<Shader> _shader);
 	~cubeMapFBO();
 	void draw();
+private:
+	static bool first;
+
 };

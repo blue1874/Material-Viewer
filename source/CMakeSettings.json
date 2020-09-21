@@ -4,9 +4,7 @@
       "name": "x86-Debug",
       "generator": "Ninja",
       "configurationType": "Debug",
-      "inheritEnvironments": [
-        "msvc_x86"
-      ],
+      "inheritEnvironments": [ "msvc_x86" ],
       "buildRoot": "${workspaceRoot}\\build\\${name}",
       "installRoot": "${workspaceRoot}\\install\\${name}",
       "cmakeCommandArgs": "",
@@ -15,17 +13,35 @@
       "variables": [
         {
           "name": "CMAKE_TOOLCHAIN_FILE",
-          "value": "D:/blue/Coding/opengl-learn/vcpkg-mirror/vcpkg/scripts/buildsystems/vcpkg.cmake"
+          "value": "D:/blue/Coding/vcpkg/scripts/buildsystems/vcpkg.cmake",
+          "type": "FILEPATH"
         },
         {
           "name": "VCPKG_TARGET_TRIPLET",
-          "value": "x86-windows"
+          "value": "x86-windows",
+          "type": "STRING"
         },
         {
           "name": "CMAKE_EXPORT_COMPILE_COMMANDS",
-          "value": "ON"
+          "value": "ON",
+          "type": "STRING"
         }
       ]
+    },
+    {
+      "name": "WSL-GCC-Debug",
+      "generator": "Unix Makefiles",
+      "configurationType": "Debug",
+      "buildRoot": "${workspaceRoot}\\build-linux\\${name}",
+      "installRoot": "${workspaceRoot}\\install-linux\\${name}",
+      "cmakeExecutable": "cmake",
+      "cmakeCommandArgs": "",
+      "buildCommandArgs": "",
+      "ctestCommandArgs": "",
+      "inheritEnvironments": [ "linux_x64" ],
+      "wslPath": "${defaultWSLPath}",
+      "addressSanitizerRuntimeFlags": "detect_leaks=0",
+      "variables": []
     }
   ]
 }

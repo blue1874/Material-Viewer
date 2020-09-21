@@ -13,8 +13,9 @@
 #include "ball.h"
 #include "cube.h"
 
-#define SCREEN_WIDTH 1200
-#define SCREEN_HEIGHT 900
+constexpr auto SCREEN_WIDTH = 640;
+constexpr auto SCREEN_HEIGHT = 480;
+constexpr auto WINDOW_ASPECT = static_cast<float>(SCREEN_WIDTH) / static_cast<float>(SCREEN_HEIGHT);
 
 class Scene {
 private:
@@ -24,7 +25,7 @@ private:
 	// used by user / cubemap
 	std::shared_ptr<BallModel> ball;
 	std::shared_ptr<CubeModel> cube;
-	std::shared_ptr<Shader> userShader, cubemapShader, fboShader, debugShader, lightShader;
+	std::shared_ptr<Shader> userShader, cubemapShader, fboShader, debugShader, lightShader, IBLShader;
 	std::vector<std::shared_ptr<Light>> lights;
 	static glm::mat4 modelMat;
 
@@ -33,20 +34,10 @@ private:
 	static bool firstMouse;
 	static double lastX ;
 	static double lastY;
-	static float lastFrame;
-	static float deltaTime;
-	static GLuint lastKeyState;
 	static bool mouse_left;
-	static GLuint lastMouseKeyState;
+
 	static glm::mat4 lastModelMat;
 
-	/**
-	 * @brief input event callback function
-	 * */
-	static void framebuffer_size_callback(GLFWwindow* window, int width, int height);
-	// static void mouse_button_callback(GLFWwindow* window, int button, int action, int mods);
-	static void mouse_callback(GLFWwindow *window, double xpos, double ypos);
-	static void mouse_ScrollCallback(GLFWwindow *window, double xoffset, double yoffset);
 	/**
 	 * @brief process keyborad input, as callback provided by glfw can not handle multiple key input
 	 * */
